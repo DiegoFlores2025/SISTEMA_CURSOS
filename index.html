@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,18 +8,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Pequeño ajuste para que el body ocupe toda la altura */
-        html,
-        body {
-            height: 100%;
-        }
+        html, body { height: 100%; }
     </style>
 </head>
-
 <body class="bg-gray-100 flex items-center justify-center h-full">
 
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Acceso al Sistema</h1>
-
+        
         <!-- Indicador de estado de conexión -->
         <div id="connection-status" class="mb-4 p-3 rounded text-sm font-medium text-center bg-gray-200 text-gray-700">
             Verificando conexión con Supabase...
@@ -29,73 +24,72 @@
         <form id="login-form" class="space-y-4">
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                <input type="email" id="email" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="usuario@ejemplo.com">
+                <input type="email" id="email" required 
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                       placeholder="usuario@ejemplo.com">
             </div>
-
+            
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                <input type="password" id="password" required
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="••••••••">
+                <input type="password" id="password" required 
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                       placeholder="••••••••">
             </div>
 
-            <button type="submit"
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="submit" 
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Iniciar Sesión
             </button>
         </form>
     </div>
 
-    <!-- Importar Supabase Client V2 -->
+    <!-- Importar Supabase Client V2 directamente desde el CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // 1. Configuración de credenciales
-        const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
+        // Esperamos a que todo el HTML esté cargado antes de ejecutar el código
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusDiv = document.getElementById('connection-status');
+            const loginForm = document.getElementById('login-form');
 
-        // 2. Inicializar cliente de Supabase
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Referencias a elementos del DOM
-        const statusDiv = document.getElementById('connection-status');
-        const loginForm = document.getElementById('login-form');
-
-        // 3. Función para probar la conexión
-        async function checkConnection() {
             try {
-                // Intentamos hacer una petición muy simple para validar que el cliente funciona
-                // En este caso, simplemente comprobamos si tenemos sesión activa (no deberíamos)
-                const { data, error } = await supabase.auth.getSession();
+                // Verificar si la librería se descargó correctamente
+                if (typeof supabase === 'undefined') {
+                    throw new Error("La librería de Supabase no se pudo cargar desde el CDN. Revisa tu conexión a internet.");
+                }
 
+                // 1. Configuración de credenciales (Tus credenciales reales)
+                const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
+                
+                // 2. Inicializar cliente de Supabase
+                const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+                // 3. Función para probar la conexión
+                const { data, error } = await supabaseClient.auth.getSession();
+                
                 if (error) throw error;
 
-                // Si llegamos aquí, la inicialización fue exitosa
+                // Si llegamos aquí, la conexión funcionó
                 statusDiv.textContent = '¡Conectado a Supabase correctamente! 🟢';
                 statusDiv.classList.remove('bg-gray-200', 'text-gray-700');
                 statusDiv.classList.add('bg-green-100', 'text-green-800');
-                console.log("Cliente Supabase inicializado:", supabase);
+                console.log("Cliente Supabase inicializado con éxito.");
+
+                // 4. Prevenir el envío real del formulario (por ahora)
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    alert('El formulario funciona. Más adelante conectaremos esto con la autenticación real.');
+                });
 
             } catch (err) {
+                // Si algo falla, ahora sí lo atrapamos y lo mostramos en rojo
                 console.error("Error conectando a Supabase:", err);
-                statusDiv.textContent = 'Error de conexión. Revisa la consola 🔴';
+                statusDiv.textContent = 'Error de conexión. Revisa la consola (F12) 🔴';
                 statusDiv.classList.remove('bg-gray-200', 'text-gray-700');
                 statusDiv.classList.add('bg-red-100', 'text-red-800');
             }
-        }
-
-        // Ejecutar prueba al cargar
-        checkConnection();
-
-        // 4. Prevenir el envío real del formulario (por ahora)
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Aquí luego conectaremos el supabase.auth.signInWithPassword()
-            alert('El formulario funciona. Más adelante conectaremos esto con la autenticación real.');
         });
     </script>
 </body>
-
 </html>
