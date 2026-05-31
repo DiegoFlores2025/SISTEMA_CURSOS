@@ -174,50 +174,74 @@
             let isLoginMode = true;
 
             // ==========================================
+            // SISTEMA DE PROTECCIÓN ANTICOLGUES
+            // ==========================================
+            // Si la página se queda pegada cargando por más de 5 segundos, abortamos y mostramos error.
+            const failsafeTimer = setTimeout(() => {
+                if (!loader.classList.contains('hidden')) {
+                    loader.classList.add('hidden');
+                    viewAuth.classList.remove('hidden');
+                    const authError = document.getElementById('auth-error');
+                    authError.textContent = "La sesión expiró o quedó incompleta. Por favor, limpia la sesión e intenta de nuevo.";
+                    authError.classList.remove('hidden');
+                    
+                    // Forzamos limpieza silenciosa de la sesión local
+                    supabaseClient.auth.signOut().catch(e => console.error(e));
+                }
+            }, 5000);
+
+            // ==========================================
             // SISTEMA DE SESIÓN Y ROLES
             // ==========================================
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 if (session) {
                     try {
-                        // 1. Mostrar loader mientras buscamos el perfil
                         loader.classList.remove('hidden');
 
-                        // 2. Obtener perfil completo desde la base de datos
                         const { data: profile, error } = await supabaseClient
                             .from('profiles')
                             .select('*')
                             .eq('id', session.user.id)
-                            .maybeSingle(); // Usamos maybeSingle() en lugar de single() para evitar errores fatales si no existe
+                            .maybeSingle();
 
                         if (error) {
-                            console.error("Error consultando la base de datos:", error);
                             throw new Error("No se pudo conectar con la base de datos.");
                         }
 
                         if (!profile) {
-                            console.warn("El usuario existe en Auth pero no tiene Perfil. Cerrando sesión...");
-                            // Si no hay perfil, la sesión está "corrupta". Cerramos sesión para que el usuario pueda volver a intentar.
-                            await supabaseClient.auth.signOut();
-                            throw new Error("Perfil no encontrado. Inicia sesión nuevamente.");
+                            // Este error ocurre cuando la sesión está corrupta (ej: creaste el usuario antes de los triggers)
+                            throw new Error("Perfil incompleto o no encontrado. Por favor, vuelve a registrar tu cuenta.");
                         }
 
-                        // 3. Pintar interfaz basada en el rol
+                        // Si todo es correcto, cancelamos el failsafe timer y dibujamos la UI
+                        clearTimeout(failsafeTimer);
                         buildDashboardForRole(profile, session.user.email);
                         
                         viewAuth.classList.add('hidden');
                         viewDashboard.classList.remove('hidden');
+                        document.getElementById('auth-error').classList.add('hidden');
+                        
                     } catch (error) {
-                        console.error("Error en el flujo de inicio de sesión:", error);
-                        // Limpiar la pantalla si ocurre un error grave
-                        viewAuth.classList.remove('hidden');
+                        console.error("Error detectado, regresando al login:", error);
+                        
+                        // Ocultamos las pantallas defectuosas
                         viewDashboard.classList.add('hidden');
-                        alert("Hubo un problema al cargar tu perfil: " + error.message);
+                        viewAuth.classList.remove('hidden');
+                        
+                        // Mostramos el mensaje sin usar alert() para no bloquear la pantalla
+                        const authError = document.getElementById('auth-error');
+                        authError.textContent = error.message;
+                        authError.classList.remove('hidden');
+                        
+                        // Forzamos el cierre de la sesión mala en un segundo plano
+                        supabaseClient.auth.signOut().catch(e => console.error("Error cerrando sesión:", e));
+                        
                     } finally {
-                        // SIEMPRE ocultar el loader al final, haya error o no
                         loader.classList.add('hidden');
                     }
                 } else {
-                    // No hay sesión
+                    // Estado limpio: No hay sesión activa
+                    clearTimeout(failsafeTimer);
                     viewAuth.classList.remove('hidden');
                     viewDashboard.classList.add('hidden');
                     loader.classList.add('hidden');
