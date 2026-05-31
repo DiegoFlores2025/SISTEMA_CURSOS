@@ -118,35 +118,82 @@
                 <button id="btn-logout-mobile" class="p-2 text-slate-300 hover:text-white"><i data-lucide="log-out" class="h-6 w-6"></i></button>
             </header>
 
-            <!-- Área de Vistas -->
-            <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+            <!-- Área de Vistas Dinámicas -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 relative">
                 <div class="max-w-6xl mx-auto">
                     
-                    <!-- Encabezado de Bienvenida -->
-                    <div class="mb-8">
-                        <h2 class="text-3xl font-bold text-slate-800" id="welcome-title">Bienvenido</h2>
-                        <p class="text-slate-500 mt-1" id="welcome-subtitle">Aquí tienes el resumen de tu actividad.</p>
-                    </div>
-                    
-                    <!-- Widgets Dinámicos (Se llenan por rol) -->
-                    <div id="dashboard-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <!-- Cargando Widgets... -->
+                    <!-- ========================================== -->
+                    <!-- VISTA 0: RESUMEN / HOME (PARA TODOS)       -->
+                    <!-- ========================================== -->
+                    <div id="panel-resumen" class="vista-panel block">
+                        <div class="mb-8">
+                            <h2 class="text-3xl font-bold text-slate-800" id="welcome-title">Bienvenido</h2>
+                            <p class="text-slate-500 mt-1" id="welcome-subtitle">Aquí tienes el resumen de tu actividad.</p>
+                        </div>
+                        <div id="dashboard-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <!-- Widgets dinámicos -->
+                        </div>
                     </div>
 
-                    <!-- Contenedor Principal de Tablas/Listas -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
-                            <h3 class="text-lg font-bold text-slate-800" id="main-panel-title">Panel Principal</h3>
-                            <button id="btn-action-main" class="hidden px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                                Acción
+                    <!-- ========================================== -->
+                    <!-- VISTAS DEL ADMINISTRADOR                   -->
+                    <!-- ========================================== -->
+                    <!-- Panel de Gestión de Usuarios -->
+                    <div id="panel-admin-usuarios" class="vista-panel hidden">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h2>
+                                <p class="text-slate-500 mt-1">Administra roles, accesos y perfiles de la plataforma.</p>
+                            </div>
+                            <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 shadow-sm flex items-center">
+                                <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Nuevo Usuario
                             </button>
                         </div>
-                        <div class="p-6" id="main-panel-content">
-                            <div class="flex flex-col items-center justify-center py-10 text-center">
-                                <i data-lucide="inbox" class="h-16 w-16 text-slate-300 mb-4"></i>
-                                <p class="text-slate-500 font-medium">Aún no hay datos para mostrar en esta sección.</p>
-                                <p class="text-sm text-slate-400 mt-1">Conectaremos las tablas de Supabase en el próximo paso.</p>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-6 text-center">
+                            <i data-lucide="users" class="h-12 w-12 text-slate-300 mx-auto mb-3"></i>
+                            <p class="text-slate-500">Aquí irá la tabla conectada a la base de datos "profiles".</p>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Gestión de Todos los Cursos -->
+                    <div id="panel-admin-cursos" class="vista-panel hidden">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-800">Todos los Cursos</h2>
+                            <p class="text-slate-500 mt-1">Supervisa todos los cursos de la plataforma.</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+                            <p class="text-slate-500">Aquí irá la tabla conectada a "courses".</p>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTAS DEL DOCENTE                         -->
+                    <!-- ========================================== -->
+                    <div id="panel-docente-cursos" class="vista-panel hidden">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Mis Cursos Dictados</h2>
+                                <p class="text-slate-500 mt-1">Crea y edita el contenido de tus clases.</p>
                             </div>
+                            <button class="px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 shadow-sm flex items-center">
+                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Crear Curso
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+                            <p class="text-slate-500">Lista de cursos filtrados por "instructor_id".</p>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTAS DEL ALUMNO                          -->
+                    <!-- ========================================== -->
+                    <div id="panel-alumno-catalogo" class="vista-panel hidden">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-800">Explorar Cursos</h2>
+                            <p class="text-slate-500 mt-1">Descubre nuevos conocimientos e inscríbete.</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+                            <p class="text-slate-500">Catálogo general (solo cursos con status = 'publicado').</p>
                         </div>
                     </div>
 
@@ -191,57 +238,53 @@
             };
 
             // ==========================================
-            // 3. MOTOR PRINCIPAL DE SESIÓN (AUTO-HEAL)
+            // 3. SISTEMA DE SESIÓN Y AUTO-REPARACIÓN
             // ==========================================
             const loadUserProfile = async (session) => {
+                setLoader(true, "Cargando perfil...");
                 try {
-                    setLoader(true, "Cargando tu información...");
-                    console.log("Intentando cargar perfil para el usuario:", session.user.email);
-
-                    // Promesa con límite de tiempo (8 segundos máximo)
-                    const fetchProfileTimeout = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Tiempo de espera agotado. Revisa tu internet o la base de datos.")), 8000)
+                    // Carga con Failsafe Timer (8 segundos)
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("El servidor tardó demasiado en responder.")), 8000)
                     );
-                    
-                    // Buscar el perfil en la base de datos
-                    const profilePromise = supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-                    
-                    // Ejecutamos una carrera: El que termine primero (la base de datos o el timeout)
-                    let { data: profile, error } = await Promise.race([profilePromise, fetchProfileTimeout]);
 
-                    if (error) throw error;
+                    const fetchPromise = supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
 
-                    // SISTEMA DE AUTO-REPARACIÓN
-                    if (!profile) {
-                        console.warn("El perfil no existe en la tabla. Intentando auto-crearlo...");
-                        setLoader(true, "Auto-reparando perfil...");
-                        
-                        const roleAsignado = session.user.email === 'admin@edugestion.com' ? 'administrador' : 'alumno';
+                    const { data: profile, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
+                    if (error) throw new Error("Error verificando los datos de perfil.");
+
+                    let currentProfile = profile;
+
+                    // Si no hay perfil, lo creamos automáticamente (Auto-Heal)
+                    if (!currentProfile) {
+                        console.log("Perfil no encontrado, activando auto-reparación...");
+                        const firstName = session.user.user_metadata?.first_name || 'Nuevo';
+                        const lastName = session.user.user_metadata?.last_name || 'Usuario';
                         
                         const { data: newProfile, error: insertError } = await supabaseClient
                             .from('profiles')
-                            .insert([{
-                                id: session.user.id,
+                            .insert([{ 
+                                id: session.user.id, 
                                 email: session.user.email,
-                                first_name: session.user.user_metadata?.first_name || 'Usuario',
-                                last_name: session.user.user_metadata?.last_name || 'Nuevo',
-                                role: roleAsignado
+                                first_name: firstName, 
+                                last_name: lastName, 
+                                role: 'alumno' 
                             }])
                             .select()
                             .single();
-
-                        if (insertError) {
-                            console.error("Fallo al auto-reparar:", insertError);
-                            throw new Error("No se pudo reparar tu perfil. Contacta al soporte técnico.");
-                        }
-                        
-                        profile = newProfile;
-                        console.log("Perfil auto-creado con éxito:", profile);
+                            
+                        if (insertError) throw new Error("No se pudo crear el perfil automáticamente.");
+                        currentProfile = newProfile;
+                        console.log("Perfil auto-creado con éxito:", currentProfile);
                     }
 
-                    // Si llegamos aquí, el perfil existe 100% seguro.
                     console.log("Perfil cargado. Construyendo Dashboard...");
-                    buildDashboardForRole(profile, session.user.email);
+                    buildDashboardForRole(currentProfile, session.user.email);
                     
                     DOM.viewAuth.classList.add('hidden');
                     DOM.viewDashboard.classList.remove('hidden');
@@ -260,9 +303,9 @@
                 }
             };
 
-            // Escuchar cambios de sesión reales
+            // Escuchar cambios de estado de autenticación
             supabaseClient.auth.onAuthStateChange((event, session) => {
-                console.log("Estado de autenticación cambió:", event);
+                console.log("Estado de autenticación:", event);
                 if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
                     if (session) {
                         loadUserProfile(session);
@@ -299,45 +342,55 @@
 
                 const nav = document.getElementById('sidebar-nav');
                 const widgets = document.getElementById('dashboard-widgets');
-                const btnAction = document.getElementById('btn-action-main');
-                const panelTitle = document.getElementById('main-panel-title');
                 
                 nav.innerHTML = ''; 
-                btnAction.classList.add('hidden'); 
 
+                // Lógica de cambio dinámico de paneles (Sistema de Vistas)
+                window.cambiarVista = function(idVista) {
+                    document.querySelectorAll('.vista-panel').forEach(panel => {
+                        panel.classList.add('hidden');
+                        panel.classList.remove('block');
+                    });
+                    const vistaActiva = document.getElementById(idVista);
+                    if(vistaActiva) {
+                        vistaActiva.classList.remove('hidden');
+                        vistaActiva.classList.add('block');
+                    }
+                };
+
+                // --- VISTA ADMINISTRADOR ---
                 if (userRole === 'administrador') {
                     document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
                     nav.innerHTML = `
-                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Gestión de Usuarios</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</a>
+                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen</button>
+                        <button onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Gestión de Usuarios</button>
+                        <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</button>
                     `;
-                    widgets.innerHTML = `${createWidget('Usuarios', '0', 'users', 'blue')} ${createWidget('Cursos', '0', 'book-open', 'purple')} ${createWidget('Evaluaciones', '0', 'file-text', 'green')}`;
-                    panelTitle.textContent = "Últimos Usuarios Registrados";
+                    widgets.innerHTML = `${createWidget('Usuarios Registrados', '0', 'users', 'blue')} ${createWidget('Cursos en Plataforma', '0', 'book-open', 'purple')} ${createWidget('Evaluaciones Totales', '0', 'file-text', 'green')}`;
                 } 
+                // --- VISTA DOCENTE ---
                 else if (userRole === 'docente') {
                     document.getElementById('welcome-subtitle').textContent = 'Gestiona tus cursos y evalúa a tus alumnos.';
                     nav.innerHTML = `
-                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos Dictados</a>
+                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-amber-500/10 text-amber-500 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</button>
+                        <button onclick="cambiarVista('panel-docente-cursos')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos</button>
+                        <button class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="check-square" class="h-5 w-5 mr-3"></i> Evaluaciones</button>
                     `;
-                    widgets.innerHTML = `${createWidget('Mis Cursos', '0', 'book', 'blue')} ${createWidget('Alumnos', '0', 'users', 'amber')} ${createWidget('Por Revisar', '0', 'alert-circle', 'red')}`;
-                    panelTitle.textContent = "Mis Cursos";
-                    btnAction.textContent = "+ Crear Curso";
-                    btnAction.classList.remove('hidden');
+                    widgets.innerHTML = `${createWidget('Mis Cursos Activos', '0', 'book', 'blue')} ${createWidget('Tareas por Revisar', '0', 'alert-circle', 'red')} ${createWidget('Alumnos Totales', '0', 'users', 'amber')}`;
                 }
+                // --- VISTA ALUMNO ---
                 else {
                     document.getElementById('welcome-subtitle').textContent = 'Continúa tu aprendizaje donde lo dejaste.';
                     nav.innerHTML = `
-                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</a>
+                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</button>
+                        <button onclick="cambiarVista('panel-alumno-catalogo')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</button>
+                        <button class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="bookmark" class="h-5 w-5 mr-3"></i> Mis Inscripciones</button>
                     `;
-                    widgets.innerHTML = `${createWidget('En Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Completados', '0', 'award', 'green')} ${createWidget('Promedio', '-', 'bar-chart', 'blue')}`;
-                    panelTitle.textContent = "Mis Cursos Actuales";
-                    btnAction.textContent = "Ver Catálogo";
-                    btnAction.classList.remove('hidden');
+                    widgets.innerHTML = `${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Cursos Completados', '0', 'award', 'green')} ${createWidget('Promedio General', '-', 'bar-chart', 'blue')}`;
                 }
-                lucide.createIcons();
+
+                cambiarVista('panel-resumen'); // Asegurar vista por defecto
+                lucide.createIcons(); // Refrescar iconos dinámicos
             }
 
             function createWidget(title, value, icon, color) {
@@ -400,7 +453,6 @@
                     if (result.error) throw result.error;
                     
                     // Si todo sale bien, onAuthStateChange tomará el control automáticamente.
-
                 } catch (error) {
                     console.error("Error en formulario:", error);
                     DOM.authError.textContent = error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message;
