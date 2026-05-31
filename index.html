@@ -23,6 +23,18 @@
             </div>
             
             <form id="auth-form" class="space-y-5">
+                <!-- Nuevos campos para registro (ocultos por defecto) -->
+                <div id="register-fields" class="hidden space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="first_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Apellido</label>
+                        <input type="text" id="last_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
                     <input type="email" id="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
@@ -160,44 +172,81 @@
             });
 
             // 3. LÓGICA DEL FORMULARIO DE AUTENTICACIÓN
-            // Alternar entre Login y Registro
-            document.getElementById('toggle-auth-mode').addEventListener('click', () => {
-                isLoginMode = !isLoginMode;
-                document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Inicia sesión en tu cuenta' : 'Crea una cuenta nueva';
-                document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
-                document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión';
-                authError.classList.add('hidden');
-                authSuccess.classList.add('hidden');
-            });
+        // Alternar entre Login y Registro
+        document.getElementById('toggle-auth-mode').addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Inicia sesión en tu cuenta' : 'Crea una cuenta nueva';
+            document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
+            document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión';
+            
+            // Mostrar u ocultar campos de nombre y apellido
+            const registerFields = document.getElementById('register-fields');
+            const firstNameInput = document.getElementById('first_name');
+            const lastNameInput = document.getElementById('last_name');
+            
+            if (isLoginMode) {
+                registerFields.classList.add('hidden');
+                firstNameInput.removeAttribute('required');
+                lastNameInput.removeAttribute('required');
+            } else {
+                registerFields.classList.remove('hidden');
+                firstNameInput.setAttribute('required', 'true');
+                lastNameInput.setAttribute('required', 'true');
+            }
+            
+            authError.classList.add('hidden');
+            authSuccess.classList.add('hidden');
+        });
 
-            // Procesar el envío del formulario
-            authForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const btnSubmit = document.getElementById('btn-submit');
-                
-                authError.classList.add('hidden');
-                authSuccess.classList.add('hidden');
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = 'Procesando...';
+        // Procesar el envío del formulario
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const firstName = document.getElementById('first_name').value;
+            const lastName = document.getElementById('last_name').value;
+            const btnSubmit = document.getElementById('btn-submit');
+            
+            authError.classList.add('hidden');
+            authSuccess.classList.add('hidden');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = 'Procesando...';
 
-                try {
-                    let result;
-                    if (isLoginMode) {
-                        result = await supabaseClient.auth.signInWithPassword({ email, password });
-                    } else {
-                        result = await supabaseClient.auth.signUp({ email, password });
-                        if (result.data?.user && result.data?.user?.identities?.length === 0) {
-                             throw new Error("Este correo ya está registrado.");
+            try {
+                let result;
+                if (isLoginMode) {
+                    result = await supabaseClient.auth.signInWithPassword({ email, password });
+                } else {
+                    // Enviar datos extra (nombre y apellido) a Supabase durante el registro
+                    result = await supabaseClient.auth.signUp({ 
+                        email, 
+                        password,
+                        options: {
+                            data: {
+                                first_name: firstName,
+                                last_name: lastName
+                            }
                         }
-                        if (!result.error) {
-                            authSuccess.textContent = "¡Registro exitoso! Ya puedes iniciar sesión (o revisa tu correo si requiere confirmación).";
-                            authSuccess.classList.remove('hidden');
-                        }
+                    });
+                    
+                    if (result.data?.user && result.data?.user?.identities?.length === 0) {
+                         throw new Error("Este correo ya está registrado.");
                     }
+                    if (!result.error) {
+                        authSuccess.textContent = "¡Registro exitoso! Revisa tu correo si requiere confirmación. Cambiando a inicio de sesión...";
+                        authSuccess.classList.remove('hidden');
+                        
+                        // Cambio automático a Iniciar Sesión después de 3 segundos
+                        setTimeout(() => {
+                            if (!isLoginMode) { // Solo si sigue en modo registro
+                                document.getElementById('toggle-auth-mode').click();
+                                authForm.reset();
+                            }
+                        }, 3000);
+                    }
+                }
 
-                    if (result.error) throw result.error;
+                if (result.error) throw result.error;
 
                 } catch (error) {
                     authError.textContent = error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message;
