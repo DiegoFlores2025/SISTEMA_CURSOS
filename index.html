@@ -3,35 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Cursos</title>
-    <!-- Tailwind CSS para el diseño -->
+    <title>EduGestión - Plataforma de Cursos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Iconos (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
-    <!-- ======================================================= -->
-    <!-- MÓDULO 1: AUTENTICACIÓN (LOGIN Y REGISTRO)              -->
-    <!-- ======================================================= -->
-    <section id="view-auth" class="min-h-screen flex items-center justify-center p-4 transition-opacity duration-300">
+    <!-- PANTALLA DE CARGA GLOBAL -->
+    <div id="global-loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-300">
+        <i data-lucide="loader-2" class="h-10 w-10 text-indigo-600 animate-spin mb-4"></i>
+        <p class="text-gray-500 font-medium">Verificando sesión...</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MÓDULO DE AUTENTICACIÓN                    -->
+    <!-- ========================================== -->
+    <section id="view-auth" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
             <div class="text-center mb-8">
-                <i data-lucide="graduation-cap" class="mx-auto h-12 w-12 text-indigo-600 mb-2"></i>
+                <div class="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="graduation-cap" class="h-8 w-8 text-indigo-600"></i>
+                </div>
                 <h1 class="text-3xl font-bold text-gray-900">EduGestión</h1>
-                <p class="text-gray-500 mt-2" id="auth-subtitle">Inicia sesión en tu cuenta</p>
+                <p class="text-gray-500 mt-2" id="auth-subtitle">Accede a tu cuenta</p>
             </div>
             
-            <form id="auth-form" class="space-y-5">
-                <!-- Nuevos campos para registro (ocultos por defecto) -->
-                <div id="register-fields" class="hidden space-y-5">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Nombre</label>
-                        <input type="text" id="first_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Apellido</label>
-                        <input type="text" id="last_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+            <form id="auth-form" class="space-y-4">
+                <div id="register-fields" class="hidden space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                            <input type="text" id="first_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Apellido</label>
+                            <input type="text" id="last_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
                     </div>
                 </div>
 
@@ -44,221 +51,353 @@
                     <input type="password" id="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 
-                <div id="auth-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
-                <div id="auth-success" class="hidden text-sm text-green-600 bg-green-50 p-3 rounded-lg"></div>
+                <div id="auth-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"></div>
+                <div id="auth-success" class="hidden text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200"></div>
 
-                <button type="submit" id="btn-submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                <button type="submit" id="btn-submit" class="w-full py-2.5 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors flex justify-center items-center">
                     Iniciar Sesión
                 </button>
             </form>
 
-            <div class="mt-6 text-center">
-                <button type="button" id="toggle-auth-mode" class="text-sm text-indigo-600 hover:text-indigo-500 font-medium">
-                    ¿No tienes cuenta? Regístrate aquí
+            <div class="mt-6 text-center border-t border-gray-100 pt-6">
+                <button type="button" id="toggle-auth-mode" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                    ¿No tienes cuenta? Regístrate como alumno
                 </button>
             </div>
         </div>
     </section>
 
-    <!-- ======================================================= -->
-    <!-- MÓDULO 2: DASHBOARD PRINCIPAL (PANEL DE CONTROL)        -->
-    <!-- ======================================================= -->
-    <section id="view-dashboard" class="hidden min-h-screen flex bg-gray-100 transition-opacity duration-300">
+    <!-- ========================================== -->
+    <!-- MÓDULO DASHBOARD PRINCIPAL                 -->
+    <!-- ========================================== -->
+    <section id="view-dashboard" class="hidden min-h-screen flex bg-gray-100">
         
-        <!-- BARRA LATERAL (SIDEBAR) -->
-        <aside class="w-64 bg-indigo-900 text-white flex flex-col hidden md:flex">
-            <div class="h-16 flex items-center px-6 border-b border-indigo-800">
-                <i data-lucide="graduation-cap" class="h-8 w-8 text-indigo-400 mr-3"></i>
-                <span class="text-xl font-bold">EduGestión</span>
+        <!-- SIDEBAR DINÁMICO -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-10">
+            <div class="h-16 flex items-center justify-center border-b border-slate-800">
+                <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
+                <span class="text-xl font-bold tracking-wide">EduGestión</span>
             </div>
-            <nav class="flex-1 px-4 py-6 space-y-2">
-                <!-- Estos enlaces no recargan la página, solo cambian el contenido derecho -->
-                <a href="#" class="flex items-center px-4 py-3 bg-indigo-800 rounded-lg text-white">
-                    <i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Inicio
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-800 hover:text-white rounded-lg transition-colors">
-                    <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Mis Cursos
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-800 hover:text-white rounded-lg transition-colors">
-                    <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alumnos
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-800 hover:text-white rounded-lg transition-colors">
-                    <i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes
-                </a>
-            </nav>
-            <div class="p-4 border-t border-indigo-800">
-                <div class="flex items-center mb-4 px-2">
-                    <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold mr-3">U</div>
-                    <div class="text-sm overflow-hidden text-ellipsis whitespace-nowrap" id="user-email-display">usuario@email.com</div>
+            
+            <!-- Etiqueta de Rol -->
+            <div class="px-6 py-4 border-b border-slate-800 bg-slate-800/50">
+                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Conectado como</p>
+                <div class="flex items-center">
+                    <div id="role-badge" class="px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Cargando...</div>
                 </div>
-                <button id="btn-logout" class="w-full flex items-center justify-center px-4 py-2 bg-indigo-800 hover:bg-red-600 text-white rounded-lg transition-colors">
+            </div>
+
+            <!-- Menú de Navegación Condicional -->
+            <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <!-- Se llenará dinámicamente con JavaScript -->
+            </nav>
+
+            <!-- Perfil Inferior -->
+            <div class="p-4 bg-slate-950">
+                <div class="flex items-center mb-4">
+                    <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow-inner" id="user-initial">U</div>
+                    <div class="ml-3 overflow-hidden">
+                        <p class="text-sm font-medium text-white truncate" id="user-name-display">Cargando...</p>
+                        <p class="text-xs text-slate-400 truncate" id="user-email-display">correo</p>
+                    </div>
+                </div>
+                <button id="btn-logout" class="w-full flex items-center justify-center px-4 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded-lg transition-colors text-sm font-medium">
                     <i data-lucide="log-out" class="h-4 w-4 mr-2"></i> Cerrar Sesión
                 </button>
             </div>
         </aside>
 
-        <!-- ÁREA DE CONTENIDO PRINCIPAL -->
-        <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-            <!-- Header Móvil (Solo visible en pantallas pequeñas) -->
-            <header class="md:hidden bg-indigo-900 text-white h-16 flex items-center px-4 justify-between">
-                <span class="text-xl font-bold">EduGestión</span>
-                <button id="btn-logout-mobile" class="p-2 bg-indigo-800 rounded-lg"><i data-lucide="log-out" class="h-5 w-5"></i></button>
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- Header Móvil -->
+            <header class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 justify-between shadow-md">
+                <div class="flex items-center">
+                    <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
+                    <span class="text-xl font-bold">EduGestión</span>
+                </div>
+                <button id="btn-logout-mobile" class="p-2 text-slate-300 hover:text-white"><i data-lucide="log-out" class="h-6 w-6"></i></button>
             </header>
 
-            <!-- Contenedor Dinámico (Aquí se cargarán los cursos, perfil, etc.) -->
-            <div class="p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Panel de Resumen</h2>
-                
-                <!-- Tarjetas de Estadísticas de Ejemplo -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                        <div class="p-3 bg-blue-100 text-blue-600 rounded-lg mr-4"><i data-lucide="book-open"></i></div>
-                        <div><p class="text-sm text-gray-500">Cursos Activos</p><p class="text-2xl font-bold">4</p></div>
+            <!-- Área de Vistas -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <!-- Encabezado de Bienvenida -->
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800" id="welcome-title">Bienvenido</h2>
+                        <p class="text-slate-500 mt-1" id="welcome-subtitle">Aquí tienes el resumen de tu actividad.</p>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                        <div class="p-3 bg-green-100 text-green-600 rounded-lg mr-4"><i data-lucide="check-circle"></i></div>
-                        <div><p class="text-sm text-gray-500">Tareas Pendientes</p><p class="text-2xl font-bold">12</p></div>
+                    
+                    <!-- Widgets Dinámicos (Se llenan por rol) -->
+                    <div id="dashboard-widgets" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- Cargando Widgets... -->
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-                        <div class="p-3 bg-purple-100 text-purple-600 rounded-lg mr-4"><i data-lucide="award"></i></div>
-                        <div><p class="text-sm text-gray-500">Certificados</p><p class="text-2xl font-bold">2</p></div>
-                    </div>
-                </div>
 
-                <!-- Área para cargar listas (Ejemplo: Cursos recientes) -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Actividad Reciente</h3>
-                    <p class="text-gray-500">Aún no hay cursos registrados en el sistema. Pronto conectaremos esta sección con la base de datos de Supabase.</p>
+                    <!-- Contenedor Principal de Tablas/Listas -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-slate-800" id="main-panel-title">Panel Principal</h3>
+                            <button id="btn-action-main" class="hidden px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                                Acción
+                            </button>
+                        </div>
+                        <div class="p-6" id="main-panel-content">
+                            <div class="flex flex-col items-center justify-center py-10 text-center">
+                                <i data-lucide="inbox" class="h-16 w-16 text-slate-300 mb-4"></i>
+                                <p class="text-slate-500 font-medium">Aún no hay datos para mostrar en esta sección.</p>
+                                <p class="text-sm text-slate-400 mt-1">Conectaremos las tablas de Supabase en el próximo paso.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
     </section>
 
-    <!-- ======================================================= -->
-    <!-- SCRIPTS Y LÓGICA DE NEGOCIO                             -->
-    <!-- ======================================================= -->
+    <!-- ========================================== -->
+    <!-- LOGICA DE LA APLICACIÓN (JS)               -->
+    <!-- ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Renderizar iconos
-        lucide.createIcons();
-
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. CONFIGURACIÓN SUPABASE
+            lucide.createIcons();
+
             const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
             const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // Variables de UI
+            // UI Elements
+            const loader = document.getElementById('global-loader');
             const viewAuth = document.getElementById('view-auth');
             const viewDashboard = document.getElementById('view-dashboard');
-            const authForm = document.getElementById('auth-form');
-            const authError = document.getElementById('auth-error');
-            const authSuccess = document.getElementById('auth-success');
-            let isLoginMode = true; // true = Login, false = Registro
+            let isLoginMode = true;
 
-            // 2. GESTOR DE ESTADO DE SESIÓN (La magia de la SPA)
-            // Esto escucha automáticamente si el usuario entra o sale de su cuenta
-            supabaseClient.auth.onAuthStateChange((event, session) => {
+            // ==========================================
+            // SISTEMA DE SESIÓN Y ROLES
+            // ==========================================
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 if (session) {
-                    // Usuario Autenticado -> Mostrar Dashboard
-                    viewAuth.classList.add('hidden');
-                    viewDashboard.classList.remove('hidden');
-                    document.getElementById('user-email-display').textContent = session.user.email;
+                    try {
+                        // 1. Obtener perfil completo desde la base de datos (aquí viene el Rol)
+                        const { data: profile, error } = await supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', session.user.id)
+                            .single();
+
+                        if (error) throw error;
+
+                        // 2. Pintar interfaz basada en el rol
+                        buildDashboardForRole(profile, session.user.email);
+                        
+                        viewAuth.classList.add('hidden');
+                        viewDashboard.classList.remove('hidden');
+                    } catch (error) {
+                        console.error("Error cargando perfil:", error);
+                        alert("Hubo un error cargando tu perfil. Contacta a soporte.");
+                    } finally {
+                        loader.classList.add('hidden');
+                    }
                 } else {
-                    // Sin sesión -> Mostrar Login
                     viewAuth.classList.remove('hidden');
                     viewDashboard.classList.add('hidden');
+                    loader.classList.add('hidden');
                 }
             });
 
-            // 3. LÓGICA DEL FORMULARIO DE AUTENTICACIÓN
-        // Alternar entre Login y Registro
-        document.getElementById('toggle-auth-mode').addEventListener('click', () => {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Inicia sesión en tu cuenta' : 'Crea una cuenta nueva';
-            document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
-            document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión';
-            
-            // Mostrar u ocultar campos de nombre y apellido
-            const registerFields = document.getElementById('register-fields');
-            const firstNameInput = document.getElementById('first_name');
-            const lastNameInput = document.getElementById('last_name');
-            
-            if (isLoginMode) {
-                registerFields.classList.add('hidden');
-                firstNameInput.removeAttribute('required');
-                lastNameInput.removeAttribute('required');
-            } else {
-                registerFields.classList.remove('hidden');
-                firstNameInput.setAttribute('required', 'true');
-                lastNameInput.setAttribute('required', 'true');
-            }
-            
-            authError.classList.add('hidden');
-            authSuccess.classList.add('hidden');
-        });
+            // ==========================================
+            // CONSTRUCTOR DE INTERFAZ SEGÚN EL ROL
+            // ==========================================
+            function buildDashboardForRole(profile, email) {
+                // Actualizar datos del usuario en la UI
+                const fullName = `${profile.first_name} ${profile.last_name}`;
+                document.getElementById('user-name-display').textContent = fullName;
+                document.getElementById('user-email-display').textContent = email;
+                document.getElementById('user-initial').textContent = profile.first_name.charAt(0).toUpperCase();
+                
+                const roleBadge = document.getElementById('role-badge');
+                roleBadge.textContent = profile.role.toUpperCase();
 
-        // Procesar el envío del formulario
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const firstName = document.getElementById('first_name').value;
-            const lastName = document.getElementById('last_name').value;
-            const btnSubmit = document.getElementById('btn-submit');
-            
-            authError.classList.add('hidden');
-            authSuccess.classList.add('hidden');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = 'Procesando...';
+                // Cambiar color del badge según el rol
+                if(profile.role === 'administrador') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30';
+                else if(profile.role === 'docente') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                else roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
 
-            try {
-                let result;
-                if (isLoginMode) {
-                    result = await supabaseClient.auth.signInWithPassword({ email, password });
-                } else {
-                    // Enviar datos extra (nombre y apellido) a Supabase durante el registro
-                    result = await supabaseClient.auth.signUp({ 
-                        email, 
-                        password,
-                        options: {
-                            data: {
-                                first_name: firstName,
-                                last_name: lastName
-                            }
-                        }
-                    });
+                document.getElementById('welcome-title').textContent = `Hola, ${profile.first_name}`;
+
+                // Construir Menú y Widgets
+                const nav = document.getElementById('sidebar-nav');
+                const widgets = document.getElementById('dashboard-widgets');
+                const btnAction = document.getElementById('btn-action-main');
+                const panelTitle = document.getElementById('main-panel-title');
+                
+                nav.innerHTML = ''; // Limpiar menú
+                btnAction.classList.add('hidden'); // Ocultar botón por defecto
+
+                // --- VISTA ADMINISTRADOR ---
+                if (profile.role === 'administrador') {
+                    document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
                     
-                    if (result.data?.user && result.data?.user?.identities?.length === 0) {
-                         throw new Error("Este correo ya está registrado.");
-                    }
-                    if (!result.error) {
-                        authSuccess.textContent = "¡Registro exitoso! Revisa tu correo si requiere confirmación. Cambiando a inicio de sesión...";
-                        authSuccess.classList.remove('hidden');
-                        
-                        // Cambio automático a Iniciar Sesión después de 3 segundos
-                        setTimeout(() => {
-                            if (!isLoginMode) { // Solo si sigue en modo registro
-                                document.getElementById('toggle-auth-mode').click();
-                                authForm.reset();
-                            }
-                        }, 3000);
-                    }
+                    nav.innerHTML = `
+                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Gestión de Usuarios</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</a>
+                    `;
+
+                    widgets.innerHTML = `
+                        ${createWidget('Usuarios Registrados', '0', 'users', 'blue')}
+                        ${createWidget('Cursos en Plataforma', '0', 'book-open', 'purple')}
+                        ${createWidget('Evaluaciones Totales', '0', 'file-text', 'green')}
+                    `;
+                    
+                    panelTitle.textContent = "Últimos Usuarios Registrados";
+                } 
+                // --- VISTA DOCENTE ---
+                else if (profile.role === 'docente') {
+                    document.getElementById('welcome-subtitle').textContent = 'Gestiona tus cursos y evalúa a tus alumnos.';
+                    
+                    nav.innerHTML = `
+                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos Dictados</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="check-square" class="h-5 w-5 mr-3"></i> Calificar Tareas</a>
+                    `;
+
+                    widgets.innerHTML = `
+                        ${createWidget('Mis Cursos Activos', '0', 'book', 'blue')}
+                        ${createWidget('Alumnos Totales', '0', 'users', 'amber')}
+                        ${createWidget('Tareas por Revisar', '0', 'alert-circle', 'red')}
+                    `;
+
+                    panelTitle.textContent = "Mis Cursos";
+                    btnAction.textContent = "+ Crear Nuevo Curso";
+                    btnAction.classList.remove('hidden');
+                }
+                // --- VISTA ALUMNO ---
+                else {
+                    document.getElementById('welcome-subtitle').textContent = 'Continúa tu aprendizaje donde lo dejaste.';
+                    
+                    nav.innerHTML = `
+                        <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="bookmark" class="h-5 w-5 mr-3"></i> Mis Inscripciones</a>
+                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="award" class="h-5 w-5 mr-3"></i> Mis Certificados</a>
+                    `;
+
+                    widgets.innerHTML = `
+                        ${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')}
+                        ${createWidget('Cursos Completados', '0', 'award', 'green')}
+                        ${createWidget('Promedio General', '-', 'bar-chart', 'blue')}
+                    `;
+
+                    panelTitle.textContent = "Mis Cursos Actuales";
+                    btnAction.textContent = "Explorar Catálogo";
+                    btnAction.classList.remove('hidden');
                 }
 
-                if (result.error) throw result.error;
+                lucide.createIcons(); // Recargar iconos inyectados
+            }
 
+            function createWidget(title, value, icon, color) {
+                const colorMap = {
+                    'blue': 'bg-blue-100 text-blue-600',
+                    'purple': 'bg-purple-100 text-purple-600',
+                    'green': 'bg-green-100 text-green-600',
+                    'amber': 'bg-amber-100 text-amber-600',
+                    'red': 'bg-red-100 text-red-600',
+                    'indigo': 'bg-indigo-100 text-indigo-600'
+                };
+                return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center hover:shadow-md transition-shadow">
+                        <div class="p-4 ${colorMap[color]} rounded-xl mr-5">
+                            <i data-lucide="${icon}" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">${title}</p>
+                            <p class="text-3xl font-bold text-slate-800">${value}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // LÓGICA DE LOGIN Y REGISTRO
+            // ==========================================
+            document.getElementById('toggle-auth-mode').addEventListener('click', () => {
+                isLoginMode = !isLoginMode;
+                document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Accede a tu cuenta' : 'Regístrate para aprender';
+                document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate como alumno' : '¿Ya tienes cuenta? Inicia sesión';
+                
+                const registerFields = document.getElementById('register-fields');
+                if (isLoginMode) {
+                    registerFields.classList.add('hidden');
+                    document.getElementById('first_name').removeAttribute('required');
+                    document.getElementById('last_name').removeAttribute('required');
+                } else {
+                    registerFields.classList.remove('hidden');
+                    document.getElementById('first_name').setAttribute('required', 'true');
+                    document.getElementById('last_name').setAttribute('required', 'true');
+                }
+                document.getElementById('auth-error').classList.add('hidden');
+                document.getElementById('auth-success').classList.add('hidden');
+            });
+
+            document.getElementById('auth-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const firstName = document.getElementById('first_name').value.trim();
+                const lastName = document.getElementById('last_name').value.trim();
+                const btnSubmit = document.getElementById('btn-submit');
+                const authError = document.getElementById('auth-error');
+                const authSuccess = document.getElementById('auth-success');
+                
+                authError.classList.add('hidden');
+                authSuccess.classList.add('hidden');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin mr-2"></i> Procesando...';
+                lucide.createIcons();
+
+                try {
+                    let result;
+                    if (isLoginMode) {
+                        result = await supabaseClient.auth.signInWithPassword({ email, password });
+                    } else {
+                        result = await supabaseClient.auth.signUp({ 
+                            email, 
+                            password,
+                            options: { data: { first_name: firstName, last_name: lastName } }
+                        });
+                        
+                        if (result.data?.user && result.data?.user?.identities?.length === 0) {
+                             throw new Error("Este correo ya está registrado.");
+                        }
+                        if (!result.error) {
+                            authSuccess.textContent = "¡Cuenta creada! Cambiando a inicio de sesión...";
+                            authSuccess.classList.remove('hidden');
+                            setTimeout(() => {
+                                if (!isLoginMode) document.getElementById('toggle-auth-mode').click();
+                                document.getElementById('auth-form').reset();
+                            }, 2000);
+                        }
+                    }
+                    if (result.error) throw result.error;
                 } catch (error) {
                     authError.textContent = error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message;
                     authError.classList.remove('hidden');
                 } finally {
                     btnSubmit.disabled = false;
-                    btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
+                    btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 }
             });
 
-            // 4. LÓGICA DE CERRAR SESIÓN
+            // ==========================================
+            // LOGOUT
+            // ==========================================
             const handleLogout = async () => {
+                loader.classList.remove('hidden');
                 await supabaseClient.auth.signOut();
             };
             document.getElementById('btn-logout').addEventListener('click', handleLogout);
