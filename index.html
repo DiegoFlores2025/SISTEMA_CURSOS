@@ -163,218 +163,195 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
 
+            // 1. CONFIGURACIÓN SUPABASE
             const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
             const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // UI Elements
-            const loader = document.getElementById('global-loader');
-            const viewAuth = document.getElementById('view-auth');
-            const viewDashboard = document.getElementById('view-dashboard');
+            // 2. ELEMENTOS DE LA UI
+            const DOM = {
+                loader: document.getElementById('global-loader'),
+                viewAuth: document.getElementById('view-auth'),
+                viewDashboard: document.getElementById('view-dashboard'),
+                authForm: document.getElementById('auth-form'),
+                authError: document.getElementById('auth-error'),
+                authSuccess: document.getElementById('auth-success'),
+                btnSubmit: document.getElementById('btn-submit')
+            };
             let isLoginMode = true;
 
-            // ==========================================
-            // SISTEMA DE PROTECCIÓN ANTICOLGUES
-            // ==========================================
-            // Si la página se queda pegada cargando por más de 5 segundos, abortamos y mostramos error.
-            const failsafeTimer = setTimeout(() => {
-                if (!loader.classList.contains('hidden')) {
-                    loader.classList.add('hidden');
-                    viewAuth.classList.remove('hidden');
-                    const authError = document.getElementById('auth-error');
-                    authError.textContent = "La sesión expiró o quedó incompleta. Por favor, limpia la sesión e intenta de nuevo.";
-                    authError.classList.remove('hidden');
-                    
-                    // Forzamos limpieza silenciosa de la sesión local
-                    supabaseClient.auth.signOut().catch(e => console.error(e));
-                }
-            }, 5000);
-
-            // ==========================================
-            // SISTEMA DE SESIÓN Y ROLES
-            // ==========================================
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                if (session) {
-                    try {
-                        loader.classList.remove('hidden');
-
-                        const { data: profile, error } = await supabaseClient
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', session.user.id)
-                            .maybeSingle();
-
-                        if (error) {
-                            throw new Error("No se pudo conectar con la base de datos.");
-                        }
-
-                        if (!profile) {
-                            // Este error ocurre cuando la sesión está corrupta (ej: creaste el usuario antes de los triggers)
-                            throw new Error("Perfil incompleto o no encontrado. Por favor, vuelve a registrar tu cuenta.");
-                        }
-
-                        // Si todo es correcto, cancelamos el failsafe timer y dibujamos la UI
-                        clearTimeout(failsafeTimer);
-                        buildDashboardForRole(profile, session.user.email);
-                        
-                        viewAuth.classList.add('hidden');
-                        viewDashboard.classList.remove('hidden');
-                        document.getElementById('auth-error').classList.add('hidden');
-                        
-                    } catch (error) {
-                        console.error("Error detectado, regresando al login:", error);
-                        
-                        // Ocultamos las pantallas defectuosas
-                        viewDashboard.classList.add('hidden');
-                        viewAuth.classList.remove('hidden');
-                        
-                        // Mostramos el mensaje sin usar alert() para no bloquear la pantalla
-                        const authError = document.getElementById('auth-error');
-                        authError.textContent = error.message;
-                        authError.classList.remove('hidden');
-                        
-                        // Forzamos el cierre de la sesión mala en un segundo plano
-                        supabaseClient.auth.signOut().catch(e => console.error("Error cerrando sesión:", e));
-                        
-                    } finally {
-                        loader.classList.add('hidden');
-                    }
+            // Función para controlar el cargador global
+            const setLoader = (show, text = "Cargando...") => {
+                if (show) {
+                    DOM.loader.querySelector('p').textContent = text;
+                    DOM.loader.classList.remove('hidden');
                 } else {
-                    // Estado limpio: No hay sesión activa
-                    clearTimeout(failsafeTimer);
-                    viewAuth.classList.remove('hidden');
-                    viewDashboard.classList.add('hidden');
-                    loader.classList.add('hidden');
+                    DOM.loader.classList.add('hidden');
+                }
+            };
+
+            // ==========================================
+            // 3. MOTOR PRINCIPAL DE SESIÓN (AUTO-HEAL)
+            // ==========================================
+            const loadUserProfile = async (session) => {
+                try {
+                    setLoader(true, "Cargando tu información...");
+                    console.log("Intentando cargar perfil para el usuario:", session.user.email);
+
+                    // Promesa con límite de tiempo (8 segundos máximo)
+                    const fetchProfileTimeout = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("Tiempo de espera agotado. Revisa tu internet o la base de datos.")), 8000)
+                    );
+                    
+                    // Buscar el perfil en la base de datos
+                    const profilePromise = supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+                    
+                    // Ejecutamos una carrera: El que termine primero (la base de datos o el timeout)
+                    let { data: profile, error } = await Promise.race([profilePromise, fetchProfileTimeout]);
+
+                    if (error) throw error;
+
+                    // SISTEMA DE AUTO-REPARACIÓN
+                    if (!profile) {
+                        console.warn("El perfil no existe en la tabla. Intentando auto-crearlo...");
+                        setLoader(true, "Auto-reparando perfil...");
+                        
+                        const roleAsignado = session.user.email === 'admin@edugestion.com' ? 'administrador' : 'alumno';
+                        
+                        const { data: newProfile, error: insertError } = await supabaseClient
+                            .from('profiles')
+                            .insert([{
+                                id: session.user.id,
+                                email: session.user.email,
+                                first_name: session.user.user_metadata?.first_name || 'Usuario',
+                                last_name: session.user.user_metadata?.last_name || 'Nuevo',
+                                role: roleAsignado
+                            }])
+                            .select()
+                            .single();
+
+                        if (insertError) {
+                            console.error("Fallo al auto-reparar:", insertError);
+                            throw new Error("No se pudo reparar tu perfil. Contacta al soporte técnico.");
+                        }
+                        
+                        profile = newProfile;
+                        console.log("Perfil auto-creado con éxito:", profile);
+                    }
+
+                    // Si llegamos aquí, el perfil existe 100% seguro.
+                    console.log("Perfil cargado. Construyendo Dashboard...");
+                    buildDashboardForRole(profile, session.user.email);
+                    
+                    DOM.viewAuth.classList.add('hidden');
+                    DOM.viewDashboard.classList.remove('hidden');
+                    DOM.authError.classList.add('hidden');
+
+                } catch (error) {
+                    console.error("Error Crítico en loadUserProfile:", error);
+                    DOM.authError.textContent = error.message;
+                    DOM.authError.classList.remove('hidden');
+                    DOM.viewDashboard.classList.add('hidden');
+                    DOM.viewAuth.classList.remove('hidden');
+                    // Forzar cierre de sesión corrupta
+                    await supabaseClient.auth.signOut();
+                } finally {
+                    setLoader(false);
+                }
+            };
+
+            // Escuchar cambios de sesión reales
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                console.log("Estado de autenticación cambió:", event);
+                if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+                    if (session) {
+                        loadUserProfile(session);
+                    } else {
+                        setLoader(false);
+                    }
+                } else if (event === 'SIGNED_OUT') {
+                    DOM.viewAuth.classList.remove('hidden');
+                    DOM.viewDashboard.classList.add('hidden');
+                    setLoader(false);
                 }
             });
 
             // ==========================================
-            // CONSTRUCTOR DE INTERFAZ SEGÚN EL ROL
+            // 4. CONSTRUCTOR DE INTERFAZ SEGÚN EL ROL
             // ==========================================
             function buildDashboardForRole(profile, email) {
-                // Protección contra datos nulos (Evita que la pantalla se congele)
                 const firstName = profile.first_name || 'Usuario';
                 const lastName = profile.last_name || '';
                 const userRole = profile.role || 'alumno';
                 
-                // Actualizar datos del usuario en la UI
-                const fullName = `${firstName} ${lastName}`;
-                document.getElementById('user-name-display').textContent = fullName;
+                document.getElementById('user-name-display').textContent = `${firstName} ${lastName}`;
                 document.getElementById('user-email-display').textContent = email;
                 document.getElementById('user-initial').textContent = firstName.charAt(0).toUpperCase();
                 
                 const roleBadge = document.getElementById('role-badge');
                 roleBadge.textContent = userRole.toUpperCase();
 
-                // Cambiar color del badge según el rol
                 if(userRole === 'administrador') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30';
                 else if(userRole === 'docente') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
                 else roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
 
                 document.getElementById('welcome-title').textContent = `Hola, ${firstName}`;
 
-                // Construir Menú y Widgets
                 const nav = document.getElementById('sidebar-nav');
                 const widgets = document.getElementById('dashboard-widgets');
                 const btnAction = document.getElementById('btn-action-main');
                 const panelTitle = document.getElementById('main-panel-title');
                 
-                nav.innerHTML = ''; // Limpiar menú
-                btnAction.classList.add('hidden'); // Ocultar botón por defecto
+                nav.innerHTML = ''; 
+                btnAction.classList.add('hidden'); 
 
-                // --- VISTA ADMINISTRADOR ---
-                if (profile.role === 'administrador') {
+                if (userRole === 'administrador') {
                     document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
-                    
                     nav.innerHTML = `
                         <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen</a>
                         <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Gestión de Usuarios</a>
                         <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</a>
                     `;
-
-                    widgets.innerHTML = `
-                        ${createWidget('Usuarios Registrados', '0', 'users', 'blue')}
-                        ${createWidget('Cursos en Plataforma', '0', 'book-open', 'purple')}
-                        ${createWidget('Evaluaciones Totales', '0', 'file-text', 'green')}
-                    `;
-                    
+                    widgets.innerHTML = `${createWidget('Usuarios', '0', 'users', 'blue')} ${createWidget('Cursos', '0', 'book-open', 'purple')} ${createWidget('Evaluaciones', '0', 'file-text', 'green')}`;
                     panelTitle.textContent = "Últimos Usuarios Registrados";
                 } 
-                // --- VISTA DOCENTE ---
-                else if (profile.role === 'docente') {
+                else if (userRole === 'docente') {
                     document.getElementById('welcome-subtitle').textContent = 'Gestiona tus cursos y evalúa a tus alumnos.';
-                    
                     nav.innerHTML = `
                         <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</a>
                         <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos Dictados</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="check-square" class="h-5 w-5 mr-3"></i> Calificar Tareas</a>
                     `;
-
-                    widgets.innerHTML = `
-                        ${createWidget('Mis Cursos Activos', '0', 'book', 'blue')}
-                        ${createWidget('Alumnos Totales', '0', 'users', 'amber')}
-                        ${createWidget('Tareas por Revisar', '0', 'alert-circle', 'red')}
-                    `;
-
+                    widgets.innerHTML = `${createWidget('Mis Cursos', '0', 'book', 'blue')} ${createWidget('Alumnos', '0', 'users', 'amber')} ${createWidget('Por Revisar', '0', 'alert-circle', 'red')}`;
                     panelTitle.textContent = "Mis Cursos";
-                    btnAction.textContent = "+ Crear Nuevo Curso";
+                    btnAction.textContent = "+ Crear Curso";
                     btnAction.classList.remove('hidden');
                 }
-                // --- VISTA ALUMNO ---
                 else {
                     document.getElementById('welcome-subtitle').textContent = 'Continúa tu aprendizaje donde lo dejaste.';
-                    
                     nav.innerHTML = `
                         <a href="#" class="flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</a>
                         <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="bookmark" class="h-5 w-5 mr-3"></i> Mis Inscripciones</a>
-                        <a href="#" class="flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="award" class="h-5 w-5 mr-3"></i> Mis Certificados</a>
                     `;
-
-                    widgets.innerHTML = `
-                        ${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')}
-                        ${createWidget('Cursos Completados', '0', 'award', 'green')}
-                        ${createWidget('Promedio General', '-', 'bar-chart', 'blue')}
-                    `;
-
+                    widgets.innerHTML = `${createWidget('En Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Completados', '0', 'award', 'green')} ${createWidget('Promedio', '-', 'bar-chart', 'blue')}`;
                     panelTitle.textContent = "Mis Cursos Actuales";
-                    btnAction.textContent = "Explorar Catálogo";
+                    btnAction.textContent = "Ver Catálogo";
                     btnAction.classList.remove('hidden');
                 }
-
-                lucide.createIcons(); // Recargar iconos inyectados
+                lucide.createIcons();
             }
 
             function createWidget(title, value, icon, color) {
-                const colorMap = {
-                    'blue': 'bg-blue-100 text-blue-600',
-                    'purple': 'bg-purple-100 text-purple-600',
-                    'green': 'bg-green-100 text-green-600',
-                    'amber': 'bg-amber-100 text-amber-600',
-                    'red': 'bg-red-100 text-red-600',
-                    'indigo': 'bg-indigo-100 text-indigo-600'
-                };
-                return `
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center hover:shadow-md transition-shadow">
-                        <div class="p-4 ${colorMap[color]} rounded-xl mr-5">
-                            <i data-lucide="${icon}" class="h-6 w-6"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">${title}</p>
-                            <p class="text-3xl font-bold text-slate-800">${value}</p>
-                        </div>
-                    </div>
-                `;
+                const colorMap = { 'blue': 'bg-blue-100 text-blue-600', 'purple': 'bg-purple-100 text-purple-600', 'green': 'bg-green-100 text-green-600', 'amber': 'bg-amber-100 text-amber-600', 'red': 'bg-red-100 text-red-600', 'indigo': 'bg-indigo-100 text-indigo-600' };
+                return `<div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center"><div class="p-4 ${colorMap[color]} rounded-xl mr-5"><i data-lucide="${icon}" class="h-6 w-6"></i></div><div><p class="text-sm font-medium text-slate-500">${title}</p><p class="text-3xl font-bold text-slate-800">${value}</p></div></div>`;
             }
 
             // ==========================================
-            // LÓGICA DE LOGIN Y REGISTRO
+            // 5. EVENTOS DE FORMULARIO (LOGIN/REGISTRO)
             // ==========================================
             document.getElementById('toggle-auth-mode').addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Accede a tu cuenta' : 'Regístrate para aprender';
-                document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                DOM.btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate como alumno' : '¿Ya tienes cuenta? Inicia sesión';
                 
                 const registerFields = document.getElementById('register-fields');
@@ -387,24 +364,21 @@
                     document.getElementById('first_name').setAttribute('required', 'true');
                     document.getElementById('last_name').setAttribute('required', 'true');
                 }
-                document.getElementById('auth-error').classList.add('hidden');
-                document.getElementById('auth-success').classList.add('hidden');
+                DOM.authError.classList.add('hidden');
+                DOM.authSuccess.classList.add('hidden');
             });
 
-            document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            DOM.authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
                 const firstName = document.getElementById('first_name').value.trim();
                 const lastName = document.getElementById('last_name').value.trim();
-                const btnSubmit = document.getElementById('btn-submit');
-                const authError = document.getElementById('auth-error');
-                const authSuccess = document.getElementById('auth-success');
                 
-                authError.classList.add('hidden');
-                authSuccess.classList.add('hidden');
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin mr-2"></i> Procesando...';
+                DOM.authError.classList.add('hidden');
+                DOM.authSuccess.classList.add('hidden');
+                DOM.btnSubmit.disabled = true;
+                DOM.btnSubmit.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin mr-2"></i> Procesando...';
                 lucide.createIcons();
 
                 try {
@@ -418,33 +392,31 @@
                             options: { data: { first_name: firstName, last_name: lastName } }
                         });
                         
-                        if (result.data?.user && result.data?.user?.identities?.length === 0) {
-                             throw new Error("Este correo ya está registrado.");
-                        }
-                        if (!result.error) {
-                            authSuccess.textContent = "¡Cuenta creada! Cambiando a inicio de sesión...";
-                            authSuccess.classList.remove('hidden');
-                            setTimeout(() => {
-                                if (!isLoginMode) document.getElementById('toggle-auth-mode').click();
-                                document.getElementById('auth-form').reset();
-                            }, 2000);
+                        if (!result.error && result.data?.user) {
+                            DOM.authSuccess.textContent = "¡Cuenta creada! Redirigiendo...";
+                            DOM.authSuccess.classList.remove('hidden');
                         }
                     }
                     if (result.error) throw result.error;
+                    
+                    // Si todo sale bien, onAuthStateChange tomará el control automáticamente.
+
                 } catch (error) {
-                    authError.textContent = error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message;
-                    authError.classList.remove('hidden');
+                    console.error("Error en formulario:", error);
+                    DOM.authError.textContent = error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message;
+                    DOM.authError.classList.remove('hidden');
+                    setLoader(false);
                 } finally {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                    DOM.btnSubmit.disabled = false;
+                    DOM.btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 }
             });
 
             // ==========================================
-            // LOGOUT
+            // 6. CERRAR SESIÓN
             // ==========================================
             const handleLogout = async () => {
-                loader.classList.remove('hidden');
+                setLoader(true, "Cerrando sesión...");
                 await supabaseClient.auth.signOut();
             };
             document.getElementById('btn-logout').addEventListener('click', handleLogout);
