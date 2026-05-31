@@ -179,27 +179,45 @@
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 if (session) {
                     try {
-                        // 1. Obtener perfil completo desde la base de datos (aquí viene el Rol)
+                        // 1. Mostrar loader mientras buscamos el perfil
+                        loader.classList.remove('hidden');
+
+                        // 2. Obtener perfil completo desde la base de datos
                         const { data: profile, error } = await supabaseClient
                             .from('profiles')
                             .select('*')
                             .eq('id', session.user.id)
-                            .single();
+                            .maybeSingle(); // Usamos maybeSingle() en lugar de single() para evitar errores fatales si no existe
 
-                        if (error) throw error;
+                        if (error) {
+                            console.error("Error consultando la base de datos:", error);
+                            throw new Error("No se pudo conectar con la base de datos.");
+                        }
 
-                        // 2. Pintar interfaz basada en el rol
+                        if (!profile) {
+                            console.warn("El usuario existe en Auth pero no tiene Perfil. Cerrando sesión...");
+                            // Si no hay perfil, la sesión está "corrupta". Cerramos sesión para que el usuario pueda volver a intentar.
+                            await supabaseClient.auth.signOut();
+                            throw new Error("Perfil no encontrado. Inicia sesión nuevamente.");
+                        }
+
+                        // 3. Pintar interfaz basada en el rol
                         buildDashboardForRole(profile, session.user.email);
                         
                         viewAuth.classList.add('hidden');
                         viewDashboard.classList.remove('hidden');
                     } catch (error) {
-                        console.error("Error cargando perfil:", error);
-                        alert("Hubo un error cargando tu perfil. Contacta a soporte.");
+                        console.error("Error en el flujo de inicio de sesión:", error);
+                        // Limpiar la pantalla si ocurre un error grave
+                        viewAuth.classList.remove('hidden');
+                        viewDashboard.classList.add('hidden');
+                        alert("Hubo un problema al cargar tu perfil: " + error.message);
                     } finally {
+                        // SIEMPRE ocultar el loader al final, haya error o no
                         loader.classList.add('hidden');
                     }
                 } else {
+                    // No hay sesión
                     viewAuth.classList.remove('hidden');
                     viewDashboard.classList.add('hidden');
                     loader.classList.add('hidden');
