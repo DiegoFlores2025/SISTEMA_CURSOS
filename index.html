@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGestión - Plataforma de Cursos</title>
+    <title id="page-title">EduGestión - Plataforma de Cursos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Incluyendo Chart.js para los gráficos de reportes -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
     <!-- PANTALLA DE CARGA GLOBAL -->
     <div id="global-loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-300">
-        <i data-lucide="loader-2" class="h-10 w-10 text-indigo-600 animate-spin mb-4"></i>
+        <i data-lucide="loader-2" class="h-10 w-10 text-indigo-600 animate-spin mb-4 dynamic-text"></i>
         <p class="text-gray-500 font-medium">Verificando sesión...</p>
     </div>
 
@@ -19,12 +21,12 @@
     <!-- MÓDULO DE AUTENTICACIÓN                    -->
     <!-- ========================================== -->
     <section id="view-auth" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border-t-4 dynamic-border">
             <div class="text-center mb-8">
-                <div class="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                    <i data-lucide="graduation-cap" class="h-8 w-8 text-indigo-600"></i>
+                <div class="mx-auto h-16 w-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="graduation-cap" class="h-8 w-8 text-indigo-600 dynamic-text"></i>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-900">EduGestión</h1>
+                <h1 class="text-3xl font-bold text-gray-900 brand-name-display">EduGestión</h1>
                 <p class="text-gray-500 mt-2" id="auth-subtitle">Accede a tu cuenta</p>
             </div>
             
@@ -54,13 +56,13 @@
                 <div id="auth-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"></div>
                 <div id="auth-success" class="hidden text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200"></div>
 
-                <button type="submit" id="btn-submit" class="w-full py-2.5 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors flex justify-center items-center">
+                <button type="submit" id="btn-submit" class="w-full py-2.5 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:opacity-90 transition-opacity flex justify-center items-center dynamic-bg">
                     Iniciar Sesión
                 </button>
             </form>
 
             <div class="mt-6 text-center border-t border-gray-100 pt-6">
-                <button type="button" id="toggle-auth-mode" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                <button type="button" id="toggle-auth-mode" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors dynamic-text">
                     ¿No tienes cuenta? Regístrate como alumno
                 </button>
             </div>
@@ -73,35 +75,32 @@
     <section id="view-dashboard" class="hidden min-h-screen flex bg-gray-100">
         
         <!-- SIDEBAR DINÁMICO -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-10 h-screen sticky top-0">
-            <div class="h-16 flex items-center justify-center border-b border-slate-800 shrink-0">
-                <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
-                <span class="text-xl font-bold tracking-wide">EduGestión</span>
+        <aside id="sidebar-container" class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-10 h-screen sticky top-0 transition-colors duration-300">
+            <div class="h-16 flex items-center justify-center border-b border-white/10 shrink-0 bg-black/10">
+                <i data-lucide="graduation-cap" class="h-6 w-6 text-white/80 mr-2"></i>
+                <span class="text-xl font-bold tracking-wide brand-name-display">EduGestión</span>
             </div>
             
-            <!-- Etiqueta de Rol -->
-            <div class="px-6 py-4 border-b border-slate-800 bg-slate-800/50 shrink-0">
-                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Conectado como</p>
+            <div class="px-6 py-4 border-b border-white/10 shrink-0 bg-black/5">
+                <p class="text-xs text-white/50 uppercase tracking-wider mb-1">Conectado como</p>
                 <div class="flex items-center">
-                    <div id="role-badge" class="px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Cargando...</div>
+                    <div id="role-badge" class="px-2 py-1 rounded text-xs font-bold bg-white/20 text-white border border-white/30 shadow-sm">Cargando...</div>
                 </div>
             </div>
 
-            <!-- Menú de Navegación Condicional -->
             <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 <!-- Se llenará dinámicamente con JavaScript -->
             </nav>
 
-            <!-- Perfil Inferior -->
-            <div class="p-4 bg-slate-950 shrink-0">
+            <div class="p-4 bg-black/20 shrink-0">
                 <div class="flex items-center mb-4">
-                    <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow-inner shrink-0" id="user-initial">U</div>
+                    <div class="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold shadow-inner shrink-0 text-white" id="user-initial">U</div>
                     <div class="ml-3 overflow-hidden w-full">
                         <p class="text-sm font-medium text-white truncate" id="user-name-display">Cargando...</p>
-                        <p class="text-xs text-slate-400 truncate" id="user-email-display">correo</p>
+                        <p class="text-xs text-white/50 truncate" id="user-email-display">correo</p>
                     </div>
                 </div>
-                <button id="btn-logout" class="w-full flex items-center justify-center px-4 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded-lg transition-colors text-sm font-medium">
+                <button id="btn-logout" class="w-full flex items-center justify-center px-4 py-2 bg-red-500/20 hover:bg-red-500 hover:text-white text-red-100 rounded-lg transition-colors text-sm font-medium">
                     <i data-lucide="log-out" class="h-4 w-4 mr-2"></i> Cerrar Sesión
                 </button>
             </div>
@@ -110,12 +109,12 @@
         <!-- CONTENIDO PRINCIPAL -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden">
             <!-- Header Móvil -->
-            <header class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 justify-between shadow-md shrink-0">
+            <header id="mobile-header" class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 justify-between shadow-md shrink-0 transition-colors duration-300">
                 <div class="flex items-center">
-                    <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
-                    <span class="text-xl font-bold">EduGestión</span>
+                    <i data-lucide="graduation-cap" class="h-6 w-6 mr-2"></i>
+                    <span class="text-xl font-bold brand-name-display">EduGestión</span>
                 </div>
-                <button id="btn-logout-mobile" class="p-2 text-slate-300 hover:text-white"><i data-lucide="log-out" class="h-6 w-6"></i></button>
+                <button id="btn-logout-mobile" class="p-2 text-white/80 hover:text-white"><i data-lucide="log-out" class="h-6 w-6"></i></button>
             </header>
 
             <!-- Área de Vistas Dinámicas -->
@@ -146,7 +145,7 @@
                                 <h2 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h2>
                                 <p class="text-slate-500 mt-1">Administra roles, accesos y perfiles de la plataforma.</p>
                             </div>
-                            <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 shadow-sm flex items-center">
+                            <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:opacity-90 shadow-sm flex items-center dynamic-bg">
                                 <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Nuevo
                             </button>
                         </div>
@@ -162,7 +161,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-admin-usuarios" class="bg-white divide-y divide-gray-200">
-                                        <!-- Las filas se llenarán con JS -->
+                                        <!-- JS -->
                                     </tbody>
                                 </table>
                             </div>
@@ -171,11 +170,9 @@
 
                     <!-- 2. Panel de Gestión de Todos los Cursos -->
                     <div id="panel-admin-cursos" class="vista-panel hidden">
-                        <div class="mb-6 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Gestión de Cursos</h2>
-                                <p class="text-slate-500 mt-1">Supervisa y audita todos los cursos de la plataforma.</p>
-                            </div>
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-800">Gestión de Cursos</h2>
+                            <p class="text-slate-500 mt-1">Supervisa y audita todos los cursos de la plataforma.</p>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="overflow-x-auto">
@@ -185,11 +182,10 @@
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Docente</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-admin-cursos" class="bg-white divide-y divide-gray-200">
-                                        <!-- Las filas se llenarán con JS -->
+                                        <!-- JS -->
                                     </tbody>
                                 </table>
                             </div>
@@ -204,28 +200,41 @@
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <p class="text-sm font-medium text-slate-500 mb-1">Total Alumnos</p>
-                                <p class="text-2xl font-bold text-slate-800" id="stat-alumnos">--</p>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 mb-1">Total Alumnos</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="stat-alumnos">0</p>
+                                </div>
+                                <i data-lucide="users" class="h-8 w-8 text-blue-200"></i>
                             </div>
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <p class="text-sm font-medium text-slate-500 mb-1">Total Docentes</p>
-                                <p class="text-2xl font-bold text-slate-800" id="stat-docentes">--</p>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 mb-1">Total Docentes</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="stat-docentes">0</p>
+                                </div>
+                                <i data-lucide="user-check" class="h-8 w-8 text-amber-200"></i>
                             </div>
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <p class="text-sm font-medium text-slate-500 mb-1">Cursos Publicados</p>
-                                <p class="text-2xl font-bold text-slate-800" id="stat-cursos-pub">--</p>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 mb-1">Cursos Creados</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="stat-cursos-pub">0</p>
+                                </div>
+                                <i data-lucide="book-open" class="h-8 w-8 text-purple-200"></i>
                             </div>
-                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <p class="text-sm font-medium text-slate-500 mb-1">Tasa de Finalización</p>
-                                <p class="text-2xl font-bold text-green-600">85%</p>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 mb-1">Actividad</p>
+                                    <p class="text-2xl font-bold text-green-600">Alta</p>
+                                </div>
+                                <i data-lucide="activity" class="h-8 w-8 text-green-200"></i>
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center text-center h-64">
-                            <i data-lucide="bar-chart-2" class="h-16 w-16 text-slate-300 mb-4"></i>
-                            <h3 class="text-lg font-medium text-slate-700">Gráfico de Inscripciones</h3>
-                            <p class="text-slate-400 text-sm max-w-md mt-2">Aquí se integrará un gráfico para visualizar las matrículas.</p>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <h3 class="text-lg font-medium text-slate-700 mb-4">Usuarios Registrados (Simulación de 6 meses)</h3>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chart-inscripciones"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -242,19 +251,21 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                     <div>
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Nombre de la Plataforma</label>
-                                        <input type="text" value="EduGestión" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                                        <input type="text" id="config-sitename" value="EduGestión" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-slate-700 mb-1">Color Principal (Hex)</label>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Color Principal (Barra Lateral)</label>
                                         <div class="flex items-center">
-                                            <input type="color" value="#4f46e5" class="h-10 w-10 border-0 p-0 mr-3">
-                                            <input type="text" value="#4f46e5" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                                            <input type="color" id="config-color" value="#0f172a" class="h-10 w-10 border-0 p-0 mr-3 rounded cursor-pointer">
+                                            <input type="text" id="config-color-text" value="#0f172a" class="w-full px-3 py-2 border border-slate-300 rounded-lg" readonly>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-4 bg-slate-50 flex justify-end">
-                                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Guardar Cambios</button>
+                                <button id="btn-save-config" class="px-4 py-2 text-white rounded-lg shadow-sm bg-indigo-600 hover:opacity-90 dynamic-bg">
+                                    Guardar Cambios
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -262,41 +273,13 @@
                     <!-- 5. Panel de Moderación -->
                     <div id="panel-admin-moderacion" class="vista-panel hidden">
                         <div class="mb-6">
-                            <h2 class="text-2xl font-bold text-slate-800">Moderación</h2>
-                            <p class="text-slate-500 mt-1">Revisa reportes y actividad en foros.</p>
+                            <h2 class="text-2xl font-bold text-slate-800">Moderación de Comentarios</h2>
+                            <p class="text-slate-500 mt-1">Revisa y elimina comentarios inapropiados en los cursos.</p>
                         </div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center text-center">
-                            <i data-lucide="shield-check" class="h-12 w-12 text-green-500 mx-auto mb-3"></i>
-                            <h3 class="text-lg font-medium text-slate-800">Todo en orden</h3>
-                            <p class="text-slate-500 text-sm mt-1">No hay comentarios reportados.</p>
-                        </div>
-                    </div>
-
-                    <!-- ========================================== -->
-                    <!-- VISTAS DEL DOCENTE                         -->
-                    <!-- ========================================== -->
-                    <div id="panel-docente-cursos" class="vista-panel hidden">
-                        <div class="mb-6 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Mis Cursos Dictados</h2>
-                                <p class="text-slate-500 mt-1">Crea y edita el contenido de tus clases.</p>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
-                            <p class="text-slate-500">Lista de cursos filtrados por "instructor_id".</p>
-                        </div>
-                    </div>
-
-                    <!-- ========================================== -->
-                    <!-- VISTAS DEL ALUMNO                          -->
-                    <!-- ========================================== -->
-                    <div id="panel-alumno-catalogo" class="vista-panel hidden">
-                        <div class="mb-6">
-                            <h2 class="text-2xl font-bold text-slate-800">Explorar Cursos</h2>
-                            <p class="text-slate-500 mt-1">Descubre nuevos conocimientos e inscríbete.</p>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
-                            <p class="text-slate-500">Catálogo general.</p>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <ul id="lista-moderacion" class="divide-y divide-gray-200">
+                                <!-- JS -->
+                            </ul>
                         </div>
                     </div>
 
@@ -318,7 +301,27 @@
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
             const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // 2. ELEMENTOS DE LA UI
+            // 2. APLICAR CONFIGURACIÓN GUARDADA (Theme & Brand)
+            function applyConfig() {
+                const config = JSON.parse(localStorage.getItem('edu_config')) || { name: 'EduGestión', color: '#0f172a' };
+                
+                // Aplicar Nombre
+                document.querySelectorAll('.brand-name-display').forEach(el => el.textContent = config.name);
+                document.getElementById('page-title').textContent = `${config.name} - Plataforma de Cursos`;
+                document.getElementById('config-sitename').value = config.name;
+                
+                // Aplicar Color a los contenedores
+                document.getElementById('sidebar-container').style.backgroundColor = config.color;
+                document.getElementById('mobile-header').style.backgroundColor = config.color;
+                document.querySelectorAll('.dynamic-bg').forEach(el => el.style.backgroundColor = config.color);
+                document.querySelectorAll('.dynamic-text').forEach(el => el.style.color = config.color);
+                
+                document.getElementById('config-color').value = config.color;
+                document.getElementById('config-color-text').value = config.color;
+            }
+            applyConfig(); // Aplicar al inicio
+
+            // 3. ELEMENTOS DE LA UI
             const DOM = {
                 loader: document.getElementById('global-loader'),
                 viewAuth: document.getElementById('view-auth'),
@@ -329,6 +332,7 @@
                 btnSubmit: document.getElementById('btn-submit')
             };
             let isLoginMode = true;
+            let chartInstance = null; // Para el gráfico de reportes
 
             const setLoader = (show, text = "Cargando...") => {
                 if (show) {
@@ -340,43 +344,24 @@
             };
 
             // ==========================================
-            // 3. SISTEMA DE SESIÓN 
+            // 4. SISTEMA DE SESIÓN 
             // ==========================================
             const loadUserProfile = async (session) => {
                 setLoader(true, "Cargando perfil...");
                 try {
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("El servidor tardó demasiado en responder.")), 8000)
-                    );
-
-                    const fetchPromise = supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .maybeSingle();
-
-                    const { data: profile, error } = await Promise.race([fetchPromise, timeoutPromise]);
-
+                    const { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
                     if (error) throw new Error("Error verificando los datos de perfil.");
 
                     let currentProfile = profile;
-
                     if (!currentProfile) {
-                        const firstName = session.user.user_metadata?.first_name || 'Nuevo';
-                        const lastName = session.user.user_metadata?.last_name || 'Usuario';
-                        
-                        const { data: newProfile, error: insertError } = await supabaseClient
-                            .from('profiles')
-                            .insert([{ id: session.user.id, email: session.user.email, first_name: firstName, last_name: lastName, role: 'alumno' }])
-                            .select()
-                            .single();
-                            
+                        const { data: newProfile, error: insertError } = await supabaseClient.from('profiles')
+                            .insert([{ id: session.user.id, email: session.user.email, first_name: session.user.user_metadata?.first_name || 'Nuevo', last_name: session.user.user_metadata?.last_name || 'Usuario', role: 'alumno' }])
+                            .select().single();
                         if (insertError) throw new Error("No se pudo crear el perfil automáticamente.");
                         currentProfile = newProfile;
                     }
 
                     buildDashboardForRole(currentProfile, session.user.email);
-                    
                     DOM.viewAuth.classList.add('hidden');
                     DOM.viewDashboard.classList.remove('hidden');
                     DOM.authError.classList.add('hidden');
@@ -385,7 +370,7 @@
                     DOM.authError.textContent = error.message;
                     DOM.authError.classList.remove('hidden');
                     DOM.viewDashboard.classList.add('hidden');
-                    DOM.viewAuth.classList.remove('hidden'); // Aseguramos que se muestre el formulario si falla
+                    DOM.viewAuth.classList.remove('hidden');
                     await supabaseClient.auth.signOut();
                 } finally {
                     setLoader(false);
@@ -394,23 +379,15 @@
 
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-                    if (session) {
-                        loadUserProfile(session);
-                    } else {
-                        // LA CORRECCIÓN ESTÁ AQUÍ: Mostrar el login cuando no hay sesión
-                        DOM.viewAuth.classList.remove('hidden');
-                        DOM.viewDashboard.classList.add('hidden');
-                        setLoader(false);
-                    }
+                    if (session) loadUserProfile(session);
+                    else { DOM.viewAuth.classList.remove('hidden'); DOM.viewDashboard.classList.add('hidden'); setLoader(false); }
                 } else if (event === 'SIGNED_OUT') {
-                    DOM.viewAuth.classList.remove('hidden');
-                    DOM.viewDashboard.classList.add('hidden');
-                    setLoader(false);
+                    DOM.viewAuth.classList.remove('hidden'); DOM.viewDashboard.classList.add('hidden'); setLoader(false);
                 }
             });
 
             // ==========================================
-            // 4. CONSTRUCTOR DE INTERFAZ Y PANELES
+            // 5. CONSTRUCTOR DE INTERFAZ Y PANELES
             // ==========================================
             function buildDashboardForRole(profile, email) {
                 const firstName = profile.first_name || 'Usuario';
@@ -424,10 +401,6 @@
                 const roleBadge = document.getElementById('role-badge');
                 roleBadge.textContent = userRole.toUpperCase();
 
-                if(userRole === 'administrador') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30';
-                else if(userRole === 'docente') roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
-                else roleBadge.className = 'px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
-
                 document.getElementById('welcome-title').textContent = `Hola, ${firstName}`;
 
                 const nav = document.getElementById('sidebar-nav');
@@ -436,57 +409,35 @@
                 nav.innerHTML = ''; 
 
                 window.cambiarVista = function(idVista) {
-                    document.querySelectorAll('.vista-panel').forEach(panel => {
-                        panel.classList.add('hidden');
-                        panel.classList.remove('block');
-                    });
+                    document.querySelectorAll('.vista-panel').forEach(panel => { panel.classList.add('hidden'); panel.classList.remove('block'); });
                     const vistaActiva = document.getElementById(idVista);
-                    if(vistaActiva) {
-                        vistaActiva.classList.remove('hidden');
-                        vistaActiva.classList.add('block');
-                    }
+                    if(vistaActiva) { vistaActiva.classList.remove('hidden'); vistaActiva.classList.add('block'); }
                     
+                    // Disparadores dinámicos
                     if(idVista === 'panel-admin-usuarios') cargarUsuariosAdmin();
                     if(idVista === 'panel-admin-cursos') cargarCursosAdmin();
+                    if(idVista === 'panel-admin-reportes') cargarReportesAdmin();
+                    if(idVista === 'panel-admin-moderacion') cargarModeracionAdmin();
                 };
 
                 // --- VISTA ADMINISTRADOR ---
                 if (userRole === 'administrador') {
                     document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
-                    
                     nav.innerHTML = `
-                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors focus:bg-indigo-600/20 focus:text-indigo-400"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen Global</button>
-                        <p class="px-4 mt-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Gestión</p>
-                        <button onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Usuarios y Roles</button>
-                        <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Catálogo de Cursos</button>
-                        <p class="px-4 mt-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Sistema</p>
-                        <button onclick="cambiarVista('panel-admin-reportes')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes</button>
-                        <button onclick="cambiarVista('panel-admin-moderacion')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="shield-alert" class="h-5 w-5 mr-3"></i> Moderación</button>
-                        <button onclick="cambiarVista('panel-admin-configuracion')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</button>
+                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen Global</button>
+                        <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Gestión</p>
+                        <button onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Usuarios y Roles</button>
+                        <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Catálogo de Cursos</button>
+                        <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Sistema</p>
+                        <button onclick="cambiarVista('panel-admin-reportes')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes</button>
+                        <button onclick="cambiarVista('panel-admin-moderacion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="shield-alert" class="h-5 w-5 mr-3"></i> Moderación</button>
+                        <button onclick="cambiarVista('panel-admin-configuracion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</button>
                     `;
-                    widgets.innerHTML = `${createWidget('Usuarios Registrados', 'Cargando...', 'users', 'blue', 'widget-usuarios-count')} 
-                                         ${createWidget('Cursos en Plataforma', 'Cargando...', 'book-open', 'purple', 'widget-cursos-count')} 
-                                         ${createWidget('Alertas', '0', 'bell', 'amber')}`;
-                                         
+                    widgets.innerHTML = `${createWidget('Usuarios Registrados', 'Cargando...', 'users', 'blue', 'widget-usuarios-count')} ${createWidget('Cursos Creados', 'Cargando...', 'book-open', 'purple', 'widget-cursos-count')} ${createWidget('Estado Sistema', 'Óptimo', 'check-circle', 'green')}`;
                     cargarStatsResumen();
-                } 
-                // --- VISTA DOCENTE ---
-                else if (userRole === 'docente') {
-                    document.getElementById('welcome-subtitle').textContent = 'Gestiona tus cursos y evalúa a tus alumnos.';
-                    nav.innerHTML = `
-                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-amber-500/10 text-amber-500 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</button>
-                        <button onclick="cambiarVista('panel-docente-cursos')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos</button>
-                    `;
-                    widgets.innerHTML = `${createWidget('Mis Cursos Activos', '0', 'book', 'blue')} ${createWidget('Alumnos Totales', '0', 'users', 'amber')}`;
-                }
-                // --- VISTA ALUMNO ---
-                else {
-                    document.getElementById('welcome-subtitle').textContent = 'Continúa tu aprendizaje donde lo dejaste.';
-                    nav.innerHTML = `
-                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</button>
-                        <button onclick="cambiarVista('panel-alumno-catalogo')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</button>
-                    `;
-                    widgets.innerHTML = `${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Cursos Completados', '0', 'award', 'green')}`;
+                } else {
+                    document.getElementById('welcome-subtitle').textContent = 'Acceso de alumno / docente.';
+                    nav.innerHTML = `<button class="w-full flex items-center px-4 py-3 text-white/80"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Modo Básico</button>`;
                 }
 
                 cambiarVista('panel-resumen'); 
@@ -494,30 +445,13 @@
             }
 
             function createWidget(title, value, icon, color, id = '') {
-                const colorMap = { 'blue': 'bg-blue-100 text-blue-600', 'purple': 'bg-purple-100 text-purple-600', 'green': 'bg-green-100 text-green-600', 'amber': 'bg-amber-100 text-amber-600', 'red': 'bg-red-100 text-red-600', 'indigo': 'bg-indigo-100 text-indigo-600' };
+                const colorMap = { 'blue': 'bg-blue-100 text-blue-600', 'purple': 'bg-purple-100 text-purple-600', 'green': 'bg-green-100 text-green-600' };
                 return `<div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center"><div class="p-4 ${colorMap[color]} rounded-xl mr-5"><i data-lucide="${icon}" class="h-6 w-6"></i></div><div><p class="text-sm font-medium text-slate-500">${title}</p><p id="${id}" class="text-3xl font-bold text-slate-800">${value}</p></div></div>`;
             }
 
             // ==========================================
-            // LOGICA ESPECÍFICA DE ADMINISTRADOR
+            // MÓDULO 1: GESTIÓN DE USUARIOS
             // ==========================================
-            async function cargarStatsResumen() {
-                try {
-                    const { count: countUsuarios } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-                    const { count: countCursos } = await supabaseClient.from('courses').select('*', { count: 'exact', head: true });
-                    
-                    const elUser = document.getElementById('widget-usuarios-count');
-                    const elCurso = document.getElementById('widget-cursos-count');
-                    const elStatU = document.getElementById('stat-alumnos');
-                    const elStatC = document.getElementById('stat-cursos-pub');
-                    
-                    if(elUser) elUser.textContent = countUsuarios || 0;
-                    if(elStatU) elStatU.textContent = countUsuarios || 0;
-                    if(elCurso) elCurso.textContent = countCursos || 0;
-                    if(elStatC) elStatC.textContent = countCursos || 0;
-                } catch(e) { console.error(e) }
-            }
-
             async function cargarUsuariosAdmin() {
                 const tbody = document.getElementById('tbody-admin-usuarios');
                 tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Cargando usuarios...</td></tr>`;
@@ -525,30 +459,42 @@
                 try {
                     const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
                     if (error) throw error;
-                    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No hay usuarios.</td></tr>`; return; }
+                    
+                    const userBans = JSON.parse(localStorage.getItem('banned_users')) || {};
 
-                    tbody.innerHTML = data.map(user => `
-                        <tr>
+                    tbody.innerHTML = data.map(user => {
+                        const isBanned = userBans[user.id] === true;
+                        const statusBadge = isBanned 
+                            ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactivo</span>`
+                            : `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>`;
+                        
+                        return `
+                        <tr class="${isBanned ? 'opacity-50 bg-gray-50' : ''}">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">${user.first_name ? user.first_name.charAt(0) : 'U'}</div>
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">${user.first_name} ${user.last_name}</div>
-                                        <div class="text-sm text-gray-500">${user.email}</div>
+                                        <div class="text-xs text-gray-500">${user.email}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <select onchange="cambiarRolUsuario('${user.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm p-1">
+                                <select onchange="cambiarRolUsuario('${user.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm p-1" ${isBanned ? 'disabled' : ''}>
                                     <option value="alumno" ${user.role === 'alumno' ? 'selected' : ''}>Alumno</option>
                                     <option value="docente" ${user.role === 'docente' ? 'selected' : ''}>Docente</option>
                                     <option value="administrador" ${user.role === 'administrador' ? 'selected' : ''}>Administrador</option>
                                 </select>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-indigo-600 hover:text-indigo-900 mx-2">Editar</button></td>
+                            <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button onclick="editarNombresUsuario('${user.id}', '${user.first_name}', '${user.last_name}')" class="text-indigo-600 hover:text-indigo-900 mx-2" ${isBanned ? 'disabled' : ''}>Editar</button>
+                                <button onclick="toggleBloqueoUsuario('${user.id}')" class="${isBanned ? 'text-green-600 hover:text-green-900' : 'text-red-600 hover:text-red-900'}">
+                                    ${isBanned ? 'Activar' : 'Desactivar'}
+                                </button>
+                            </td>
                         </tr>
-                    `).join('');
+                    `}).join('');
                 } catch (error) {
                     tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error al cargar usuarios.</td></tr>`;
                 }
@@ -557,25 +503,44 @@
             window.cambiarRolUsuario = async function(userId, nuevoRol) {
                 try {
                     const { error } = await supabaseClient.from('profiles').update({ role: nuevoRol }).eq('id', userId);
-                    if (error) throw error; alert("Rol actualizado.");
+                    if (error) throw error; alert("Rol actualizado en la base de datos.");
                 } catch (error) { alert("Error al cambiar rol."); cargarUsuariosAdmin(); }
             };
 
+            window.editarNombresUsuario = async function(userId, currentFirst, currentLast) {
+                const nuevoNombre = prompt("Modificar Nombre:", currentFirst);
+                const nuevoApellido = prompt("Modificar Apellido:", currentLast);
+                if(nuevoNombre && nuevoApellido) {
+                    try {
+                        const { error } = await supabaseClient.from('profiles').update({ first_name: nuevoNombre, last_name: nuevoApellido }).eq('id', userId);
+                        if(error) throw error;
+                        cargarUsuariosAdmin();
+                    } catch(e) { alert("Error al actualizar el usuario."); }
+                }
+            };
+
+            window.toggleBloqueoUsuario = function(userId) {
+                let userBans = JSON.parse(localStorage.getItem('banned_users')) || {};
+                userBans[userId] = !userBans[userId];
+                localStorage.setItem('banned_users', JSON.stringify(userBans));
+                cargarUsuariosAdmin();
+            };
+
+            // ==========================================
+            // MÓDULO 2: GESTIÓN DE CURSOS
+            // ==========================================
             async function cargarCursosAdmin() {
                 const tbody = document.getElementById('tbody-admin-cursos');
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Cargando cursos...</td></tr>`;
-
+                tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Cargando cursos...</td></tr>`;
                 try {
                     const { data, error } = await supabaseClient.from('courses').select('*, instructor:instructor_id(first_name, last_name)').order('created_at', { ascending: false });
                     if (error) throw error;
-                    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Aún no se han creado cursos.</td></tr>`; return; }
+                    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Aún no se han creado cursos en la plataforma.</td></tr>`; return; }
 
-                    tbody.innerHTML = data.map(curso => {
-                        const instructorName = curso.instructor ? `${curso.instructor.first_name} ${curso.instructor.last_name}` : 'Sin asignar';
-                        return `
+                    tbody.innerHTML = data.map(curso => `
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">${curso.title}</div></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${instructorName}</td>
+                            <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-gray-900">${curso.title}</div><div class="text-xs text-gray-500">${curso.id}</div></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${curso.instructor ? `${curso.instructor.first_name} ${curso.instructor.last_name}` : 'Sin asignar'}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <select onchange="cambiarEstadoCurso('${curso.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm p-1">
                                     <option value="borrador" ${curso.status === 'borrador' ? 'selected' : ''}>Borrador</option>
@@ -583,12 +548,8 @@
                                     <option value="archivado" ${curso.status === 'archivado' ? 'selected' : ''}>Archivado</option>
                                 </select>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-indigo-600 hover:text-indigo-900">Detalles</button></td>
-                        </tr>`;
-                    }).join('');
-                } catch (error) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error al cargar cursos.</td></tr>`;
-                }
+                        </tr>`).join('');
+                } catch (error) { tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-red-500">Error. Verifica la tabla courses.</td></tr>`; }
             }
             
             window.cambiarEstadoCurso = async function(cursoId, nuevoEstado) {
@@ -599,7 +560,120 @@
             };
 
             // ==========================================
-            // 5. EVENTOS DE FORMULARIO (LOGIN/REGISTRO)
+            // MÓDULO 3: REPORTES GLOBALES
+            // ==========================================
+            async function cargarStatsResumen() {
+                try {
+                    const { count: countUsuarios } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+                    const { count: countCursos } = await supabaseClient.from('courses').select('*', { count: 'exact', head: true });
+                    if(document.getElementById('widget-usuarios-count')) document.getElementById('widget-usuarios-count').textContent = countUsuarios || 0;
+                    if(document.getElementById('widget-cursos-count')) document.getElementById('widget-cursos-count').textContent = countCursos || 0;
+                } catch(e) { console.error(e) }
+            }
+
+            async function cargarReportesAdmin() {
+                try {
+                    // Contar roles específicos
+                    const { count: countAlumnos } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'alumno');
+                    const { count: countDocentes } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'docente');
+                    const { count: countCursos } = await supabaseClient.from('courses').select('*', { count: 'exact', head: true });
+                    
+                    document.getElementById('stat-alumnos').textContent = countAlumnos || 0;
+                    document.getElementById('stat-docentes').textContent = countDocentes || 0;
+                    document.getElementById('stat-cursos-pub').textContent = countCursos || 0;
+
+                    // Dibujar Gráfico con Chart.js
+                    const ctx = document.getElementById('chart-inscripciones').getContext('2d');
+                    if(chartInstance) chartInstance.destroy(); // Destruir previo para evitar parpadeos
+                    
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Nuevos Usuarios',
+                                data: [5, 12, 18, 25, 22, (countAlumnos || 0)],
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+
+                } catch(e) { console.error("Error en reportes", e); }
+            }
+
+            // ==========================================
+            // MÓDULO 4: CONFIGURACIÓN
+            // ==========================================
+            document.getElementById('config-color').addEventListener('input', function() {
+                document.getElementById('config-color-text').value = this.value;
+            });
+
+            document.getElementById('btn-save-config').addEventListener('click', () => {
+                const newName = document.getElementById('config-sitename').value;
+                const newColor = document.getElementById('config-color').value;
+                
+                const config = { name: newName, color: newColor };
+                localStorage.setItem('edu_config', JSON.stringify(config));
+                
+                applyConfig(); // Aplicar cambios al instante
+                alert("Configuración guardada y aplicada correctamente.");
+            });
+
+            // ==========================================
+            // MÓDULO 5: MODERACIÓN
+            // ==========================================
+            async function cargarModeracionAdmin() {
+                const lista = document.getElementById('lista-moderacion');
+                lista.innerHTML = `<li class="p-6 text-center text-gray-500">Buscando comentarios...</li>`;
+                
+                try {
+                    const { data, error } = await supabaseClient.from('comments').select('*, user:user_id(first_name, last_name)').order('created_at', { ascending: false });
+                    
+                    if(error && error.code === '42P01') {
+                        // La tabla no existe
+                        lista.innerHTML = `<li class="p-8 text-center text-gray-500 flex flex-col items-center"><i data-lucide="shield-check" class="h-12 w-12 text-green-500 mb-2"></i>Todo en orden. Aún no hay tabla de comentarios creada en la BD.</li>`;
+                        lucide.createIcons();
+                        return;
+                    }
+                    if(error) throw error;
+
+                    if(!data || data.length === 0) {
+                        lista.innerHTML = `<li class="p-8 text-center text-gray-500 flex flex-col items-center"><i data-lucide="shield-check" class="h-12 w-12 text-green-500 mb-2"></i>Todo en orden. No hay comentarios reportados.</li>`;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    lista.innerHTML = data.map(com => `
+                        <li class="p-4 sm:px-6 hover:bg-gray-50 flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">${com.user ? `${com.user.first_name} ${com.user.last_name}` : 'Usuario Anónimo'}</p>
+                                <p class="text-sm text-gray-500 mt-1">"${com.message}"</p>
+                                <p class="text-xs text-gray-400 mt-2">${new Date(com.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <button onclick="eliminarComentario('${com.id}')" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1 rounded text-xs font-medium">Eliminar</button>
+                        </li>
+                    `).join('');
+                } catch(e) {
+                    console.error("Error en moderación", e);
+                    lista.innerHTML = `<li class="p-6 text-center text-red-500">No se pudieron cargar los comentarios.</li>`;
+                }
+            }
+
+            window.eliminarComentario = async function(id) {
+                if(confirm("¿Seguro que deseas eliminar este comentario?")) {
+                    try {
+                        await supabaseClient.from('comments').delete().eq('id', id);
+                        cargarModeracionAdmin();
+                    } catch(e) { alert("Error al eliminar."); }
+                }
+            };
+
+            // ==========================================
+            // LOGIN / REGISTRO
             // ==========================================
             document.getElementById('toggle-auth-mode').addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
