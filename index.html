@@ -73,14 +73,14 @@
     <section id="view-dashboard" class="hidden min-h-screen flex bg-gray-100">
         
         <!-- SIDEBAR DINÁMICO -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-10">
-            <div class="h-16 flex items-center justify-center border-b border-slate-800">
+        <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl z-10 h-screen sticky top-0">
+            <div class="h-16 flex items-center justify-center border-b border-slate-800 shrink-0">
                 <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
                 <span class="text-xl font-bold tracking-wide">EduGestión</span>
             </div>
             
             <!-- Etiqueta de Rol -->
-            <div class="px-6 py-4 border-b border-slate-800 bg-slate-800/50">
+            <div class="px-6 py-4 border-b border-slate-800 bg-slate-800/50 shrink-0">
                 <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Conectado como</p>
                 <div class="flex items-center">
                     <div id="role-badge" class="px-2 py-1 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Cargando...</div>
@@ -93,9 +93,9 @@
             </nav>
 
             <!-- Perfil Inferior -->
-            <div class="p-4 bg-slate-950">
+            <div class="p-4 bg-slate-950 shrink-0">
                 <div class="flex items-center mb-4">
-                    <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow-inner" id="user-initial">U</div>
+                    <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow-inner shrink-0" id="user-initial">U</div>
                     <div class="ml-3 overflow-hidden w-full">
                         <p class="text-sm font-medium text-white truncate" id="user-name-display">Cargando...</p>
                         <p class="text-xs text-slate-400 truncate" id="user-email-display">correo</p>
@@ -110,7 +110,7 @@
         <!-- CONTENIDO PRINCIPAL -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden">
             <!-- Header Móvil -->
-            <header class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 justify-between shadow-md">
+            <header class="md:hidden bg-slate-900 text-white h-16 flex items-center px-4 justify-between shadow-md shrink-0">
                 <div class="flex items-center">
                     <i data-lucide="graduation-cap" class="h-6 w-6 text-indigo-400 mr-2"></i>
                     <span class="text-xl font-bold">EduGestión</span>
@@ -125,7 +125,7 @@
                     <!-- ========================================== -->
                     <!-- VISTA 0: RESUMEN / HOME (PARA TODOS)       -->
                     <!-- ========================================== -->
-                    <div id="panel-resumen" class="vista-panel block">
+                    <div id="panel-resumen" class="vista-panel hidden">
                         <div class="mb-8">
                             <h2 class="text-3xl font-bold text-slate-800" id="welcome-title">Bienvenido</h2>
                             <p class="text-slate-500 mt-1" id="welcome-subtitle">Aquí tienes el resumen de tu actividad.</p>
@@ -147,7 +147,7 @@
                                 <p class="text-slate-500 mt-1">Administra roles, accesos y perfiles de la plataforma.</p>
                             </div>
                             <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 shadow-sm flex items-center">
-                                <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Invitar Usuario
+                                <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Nuevo
                             </button>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -225,7 +225,7 @@
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center text-center h-64">
                             <i data-lucide="bar-chart-2" class="h-16 w-16 text-slate-300 mb-4"></i>
                             <h3 class="text-lg font-medium text-slate-700">Gráfico de Inscripciones</h3>
-                            <p class="text-slate-400 text-sm max-w-md mt-2">Aquí se integrará un gráfico detallado (ej. Chart.js) para visualizar las matrículas de los últimos 6 meses cuando haya más datos de matriculación.</p>
+                            <p class="text-slate-400 text-sm max-w-md mt-2">Aquí se integrará un gráfico para visualizar las matrículas.</p>
                         </div>
                     </div>
 
@@ -239,12 +239,10 @@
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="p-6 border-b border-slate-200">
                                 <h3 class="text-lg font-semibold text-slate-800">Identidad de Marca</h3>
-                                <p class="text-sm text-slate-500 mb-4">Logotipos y nombres que ven los estudiantes.</p>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                     <div>
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Nombre de la Plataforma</label>
-                                        <input type="text" value="EduGestión" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                        <input type="text" value="EduGestión" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-slate-700 mb-1">Color Principal (Hex)</label>
@@ -255,27 +253,8 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="p-6 bg-slate-50">
-                                <h3 class="text-lg font-semibold text-slate-800">Integraciones Externas</h3>
-                                <p class="text-sm text-slate-500 mb-4">Conecta EduGestión con otros servicios.</p>
-                                
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg">
-                                        <div class="flex items-center">
-                                            <i data-lucide="mail" class="h-6 w-6 text-slate-400 mr-3"></i>
-                                            <div>
-                                                <p class="font-medium text-slate-800">Servicio SMTP (Emails)</p>
-                                                <p class="text-sm text-slate-500">Para notificaciones y recuperación de claves.</p>
-                                            </div>
-                                        </div>
-                                        <button class="px-3 py-1.5 border border-slate-300 text-slate-600 rounded-md text-sm hover:bg-slate-50">Configurar</button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="p-4 border-t border-slate-200 bg-white flex justify-end">
-                                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700">Guardar Cambios</button>
+                            <div class="p-4 bg-slate-50 flex justify-end">
+                                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Guardar Cambios</button>
                             </div>
                         </div>
                     </div>
@@ -284,18 +263,12 @@
                     <div id="panel-admin-moderacion" class="vista-panel hidden">
                         <div class="mb-6">
                             <h2 class="text-2xl font-bold text-slate-800">Moderación</h2>
-                            <p class="text-slate-500 mt-1">Revisa reportes, comentarios y actividad en foros.</p>
+                            <p class="text-slate-500 mt-1">Revisa reportes y actividad en foros.</p>
                         </div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div class="p-6">
-                                <div class="flex items-center justify-center p-8 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50">
-                                    <div class="text-center">
-                                        <i data-lucide="shield-check" class="h-12 w-12 text-green-500 mx-auto mb-3"></i>
-                                        <h3 class="text-lg font-medium text-slate-800">Todo en orden</h3>
-                                        <p class="text-slate-500 text-sm mt-1">No hay comentarios reportados ni actividad sospechosa pendiente de revisión.</p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center text-center">
+                            <i data-lucide="shield-check" class="h-12 w-12 text-green-500 mx-auto mb-3"></i>
+                            <h3 class="text-lg font-medium text-slate-800">Todo en orden</h3>
+                            <p class="text-slate-500 text-sm mt-1">No hay comentarios reportados.</p>
                         </div>
                     </div>
 
@@ -308,9 +281,6 @@
                                 <h2 class="text-2xl font-bold text-slate-800">Mis Cursos Dictados</h2>
                                 <p class="text-slate-500 mt-1">Crea y edita el contenido de tus clases.</p>
                             </div>
-                            <button class="px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 shadow-sm flex items-center">
-                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Crear Curso
-                            </button>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
                             <p class="text-slate-500">Lista de cursos filtrados por "instructor_id".</p>
@@ -326,7 +296,7 @@
                             <p class="text-slate-500 mt-1">Descubre nuevos conocimientos e inscríbete.</p>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
-                            <p class="text-slate-500">Catálogo general (solo cursos con status = 'publicado').</p>
+                            <p class="text-slate-500">Catálogo general.</p>
                         </div>
                     </div>
 
@@ -360,7 +330,6 @@
             };
             let isLoginMode = true;
 
-            // Función para controlar el cargador global
             const setLoader = (show, text = "Cargando...") => {
                 if (show) {
                     DOM.loader.querySelector('p').textContent = text;
@@ -371,7 +340,7 @@
             };
 
             // ==========================================
-            // 3. SISTEMA DE SESIÓN Y AUTO-REPARACIÓN
+            // 3. SISTEMA DE SESIÓN 
             // ==========================================
             const loadUserProfile = async (session) => {
                 setLoader(true, "Cargando perfil...");
@@ -398,13 +367,7 @@
                         
                         const { data: newProfile, error: insertError } = await supabaseClient
                             .from('profiles')
-                            .insert([{ 
-                                id: session.user.id, 
-                                email: session.user.email,
-                                first_name: firstName, 
-                                last_name: lastName, 
-                                role: 'alumno' 
-                            }])
+                            .insert([{ id: session.user.id, email: session.user.email, first_name: firstName, last_name: lastName, role: 'alumno' }])
                             .select()
                             .single();
                             
@@ -422,7 +385,7 @@
                     DOM.authError.textContent = error.message;
                     DOM.authError.classList.remove('hidden');
                     DOM.viewDashboard.classList.add('hidden');
-                    DOM.viewAuth.classList.remove('hidden');
+                    DOM.viewAuth.classList.remove('hidden'); // Aseguramos que se muestre el formulario si falla
                     await supabaseClient.auth.signOut();
                 } finally {
                     setLoader(false);
@@ -434,6 +397,9 @@
                     if (session) {
                         loadUserProfile(session);
                     } else {
+                        // LA CORRECCIÓN ESTÁ AQUÍ: Mostrar el login cuando no hay sesión
+                        DOM.viewAuth.classList.remove('hidden');
+                        DOM.viewDashboard.classList.add('hidden');
                         setLoader(false);
                     }
                 } else if (event === 'SIGNED_OUT') {
@@ -469,7 +435,6 @@
                 
                 nav.innerHTML = ''; 
 
-                // Lógica central de navegación SPA
                 window.cambiarVista = function(idVista) {
                     document.querySelectorAll('.vista-panel').forEach(panel => {
                         panel.classList.add('hidden');
@@ -481,7 +446,6 @@
                         vistaActiva.classList.add('block');
                     }
                     
-                    // Disparar carga de datos según la vista
                     if(idVista === 'panel-admin-usuarios') cargarUsuariosAdmin();
                     if(idVista === 'panel-admin-cursos') cargarCursosAdmin();
                 };
@@ -490,7 +454,6 @@
                 if (userRole === 'administrador') {
                     document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
                     
-                    // BOTONES DE NAVEGACIÓN COMPLETOS
                     nav.innerHTML = `
                         <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors focus:bg-indigo-600/20 focus:text-indigo-400"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen Global</button>
                         <p class="px-4 mt-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Gestión</p>
@@ -505,7 +468,6 @@
                                          ${createWidget('Cursos en Plataforma', 'Cargando...', 'book-open', 'purple', 'widget-cursos-count')} 
                                          ${createWidget('Alertas', '0', 'bell', 'amber')}`;
                                          
-                    // Cargar números para el resumen al iniciar
                     cargarStatsResumen();
                 } 
                 // --- VISTA DOCENTE ---
@@ -514,9 +476,8 @@
                     nav.innerHTML = `
                         <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-amber-500/10 text-amber-500 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</button>
                         <button onclick="cambiarVista('panel-docente-cursos')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos</button>
-                        <button class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="check-square" class="h-5 w-5 mr-3"></i> Evaluaciones</button>
                     `;
-                    widgets.innerHTML = `${createWidget('Mis Cursos Activos', '0', 'book', 'blue')} ${createWidget('Tareas por Revisar', '0', 'alert-circle', 'red')} ${createWidget('Alumnos Totales', '0', 'users', 'amber')}`;
+                    widgets.innerHTML = `${createWidget('Mis Cursos Activos', '0', 'book', 'blue')} ${createWidget('Alumnos Totales', '0', 'users', 'amber')}`;
                 }
                 // --- VISTA ALUMNO ---
                 else {
@@ -524,12 +485,11 @@
                     nav.innerHTML = `
                         <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-lg font-medium transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Progreso</button>
                         <button onclick="cambiarVista('panel-alumno-catalogo')" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="compass" class="h-5 w-5 mr-3"></i> Explorar Cursos</button>
-                        <button class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"><i data-lucide="bookmark" class="h-5 w-5 mr-3"></i> Mis Inscripciones</button>
                     `;
-                    widgets.innerHTML = `${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Cursos Completados', '0', 'award', 'green')} ${createWidget('Promedio General', '-', 'bar-chart', 'blue')}`;
+                    widgets.innerHTML = `${createWidget('Cursos en Progreso', '0', 'play-circle', 'indigo')} ${createWidget('Cursos Completados', '0', 'award', 'green')}`;
                 }
 
-                cambiarVista('panel-resumen'); // Asegurar vista por defecto
+                cambiarVista('panel-resumen'); 
                 lucide.createIcons(); 
             }
 
@@ -541,7 +501,6 @@
             // ==========================================
             // LOGICA ESPECÍFICA DE ADMINISTRADOR
             // ==========================================
-
             async function cargarStatsResumen() {
                 try {
                     const { count: countUsuarios } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
@@ -554,30 +513,19 @@
                     
                     if(elUser) elUser.textContent = countUsuarios || 0;
                     if(elStatU) elStatU.textContent = countUsuarios || 0;
-                    
                     if(elCurso) elCurso.textContent = countCursos || 0;
                     if(elStatC) elStatC.textContent = countCursos || 0;
                 } catch(e) { console.error(e) }
             }
 
-            // Cargar Usuarios en Tabla
             async function cargarUsuariosAdmin() {
                 const tbody = document.getElementById('tbody-admin-usuarios');
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500"><i data-lucide="loader-2" class="animate-spin inline h-5 w-5 mr-2"></i> Cargando usuarios...</td></tr>`;
-                lucide.createIcons();
-
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Cargando usuarios...</td></tr>`;
+                
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-
+                    const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
                     if (error) throw error;
-
-                    if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No hay usuarios registrados.</td></tr>`;
-                        return;
-                    }
+                    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No hay usuarios.</td></tr>`; return; }
 
                     tbody.innerHTML = data.map(user => `
                         <tr>
@@ -591,77 +539,43 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <select onchange="cambiarRolUsuario('${user.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-1">
+                                <select onchange="cambiarRolUsuario('${user.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm p-1">
                                     <option value="alumno" ${user.role === 'alumno' ? 'selected' : ''}>Alumno</option>
                                     <option value="docente" ${user.role === 'docente' ? 'selected' : ''}>Docente</option>
-                                    <option value="visualizador" ${user.role === 'visualizador' ? 'selected' : ''}>Visualizador</option>
                                     <option value="administrador" ${user.role === 'administrador' ? 'selected' : ''}>Administrador</option>
                                 </select>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button class="text-indigo-600 hover:text-indigo-900 mx-2">Editar</button>
-                                <button class="text-red-600 hover:text-red-900">Bloquear</button>
-                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-indigo-600 hover:text-indigo-900 mx-2">Editar</button></td>
                         </tr>
                     `).join('');
                 } catch (error) {
-                    console.error("Error cargando usuarios:", error);
-                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error al cargar usuarios. Verifica los permisos (RLS).</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error al cargar usuarios.</td></tr>`;
                 }
             }
 
-            // Cambiar Rol de Usuario
             window.cambiarRolUsuario = async function(userId, nuevoRol) {
                 try {
-                    const { error } = await supabaseClient
-                        .from('profiles')
-                        .update({ role: nuevoRol })
-                        .eq('id', userId);
-                        
-                    if (error) throw error;
-                    alert("Rol actualizado correctamente.");
-                } catch (error) {
-                    console.error(error);
-                    alert("Error al cambiar rol. Nota: Necesitas permisos de administrador en la BD (RLS) para modificar otros perfiles.");
-                    cargarUsuariosAdmin(); // Revertir cambio visual
-                }
+                    const { error } = await supabaseClient.from('profiles').update({ role: nuevoRol }).eq('id', userId);
+                    if (error) throw error; alert("Rol actualizado.");
+                } catch (error) { alert("Error al cambiar rol."); cargarUsuariosAdmin(); }
             };
 
-            // Cargar Cursos en Tabla
             async function cargarCursosAdmin() {
                 const tbody = document.getElementById('tbody-admin-cursos');
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500"><i data-lucide="loader-2" class="animate-spin inline h-5 w-5 mr-2"></i> Cargando cursos...</td></tr>`;
-                lucide.createIcons();
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Cargando cursos...</td></tr>`;
 
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('courses')
-                        .select('*, instructor:instructor_id(first_name, last_name)')
-                        .order('created_at', { ascending: false });
-
+                    const { data, error } = await supabaseClient.from('courses').select('*, instructor:instructor_id(first_name, last_name)').order('created_at', { ascending: false });
                     if (error) throw error;
-
-                    if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Aún no se han creado cursos.</td></tr>`;
-                        return;
-                    }
+                    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Aún no se han creado cursos.</td></tr>`; return; }
 
                     tbody.innerHTML = data.map(curso => {
                         const instructorName = curso.instructor ? `${curso.instructor.first_name} ${curso.instructor.last_name}` : 'Sin asignar';
-                        let badgeColor = curso.status === 'publicado' ? 'bg-green-100 text-green-800' : (curso.status === 'archivado' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800');
-                        
                         return `
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">${curso.title}</div>
-                                <div class="text-xs text-gray-500 mt-1">${curso.capacity ? `Cupo: ${curso.capacity}` : 'Cupo ilimitado'}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                ${instructorName}
-                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">${curso.title}</div></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${instructorName}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <select onchange="cambiarEstadoCurso('${curso.id}', this.value)" class="text-sm border-gray-300 rounded-md shadow-sm p-1">
                                     <option value="borrador" ${curso.status === 'borrador' ? 'selected' : ''}>Borrador</option>
@@ -669,29 +583,19 @@
                                     <option value="archivado" ${curso.status === 'archivado' ? 'selected' : ''}>Archivado</option>
                                 </select>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button class="text-indigo-600 hover:text-indigo-900">Detalles</button>
-                            </td>
-                        </tr>
-                        `;
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-indigo-600 hover:text-indigo-900">Detalles</button></td>
+                        </tr>`;
                     }).join('');
                 } catch (error) {
-                    console.error("Error cargando cursos:", error);
                     tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error al cargar cursos.</td></tr>`;
                 }
             }
             
             window.cambiarEstadoCurso = async function(cursoId, nuevoEstado) {
                  try {
-                    const { error } = await supabaseClient
-                        .from('courses')
-                        .update({ status: nuevoEstado })
-                        .eq('id', cursoId);
+                    const { error } = await supabaseClient.from('courses').update({ status: nuevoEstado }).eq('id', cursoId);
                     if (error) throw error;
-                } catch (error) {
-                    alert("Error al actualizar estado del curso.");
-                    cargarCursosAdmin();
-                }
+                } catch (error) { alert("Error al actualizar."); cargarCursosAdmin(); }
             };
 
             // ==========================================
@@ -736,9 +640,7 @@
                         result = await supabaseClient.auth.signInWithPassword({ email, password });
                     } else {
                         result = await supabaseClient.auth.signUp({ 
-                            email, 
-                            password,
-                            options: { data: { first_name: firstName, last_name: lastName } }
+                            email, password, options: { data: { first_name: firstName, last_name: lastName } }
                         });
                         
                         if (!result.error && result.data?.user) {
