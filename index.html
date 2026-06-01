@@ -145,9 +145,14 @@
                                 <h2 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h2>
                                 <p class="text-slate-500 mt-1">Administra roles, accesos y perfiles de la plataforma.</p>
                             </div>
-                            <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:opacity-90 shadow-sm flex items-center dynamic-bg">
-                                <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Nuevo
-                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="cargarUsuariosAdmin()" class="p-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 shadow-sm" title="Actualizar datos">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="abrirModalNuevoUsuario()" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:opacity-90 shadow-sm flex items-center dynamic-bg">
+                                    <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i> Nuevo
+                                </button>
+                            </div>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="overflow-x-auto">
@@ -170,9 +175,14 @@
 
                     <!-- 2. Panel de Gestión de Todos los Cursos -->
                     <div id="panel-admin-cursos" class="vista-panel hidden">
-                        <div class="mb-6">
-                            <h2 class="text-2xl font-bold text-slate-800">Gestión de Cursos</h2>
-                            <p class="text-slate-500 mt-1">Supervisa y audita todos los cursos de la plataforma.</p>
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Gestión de Cursos</h2>
+                                <p class="text-slate-500 mt-1">Supervisa y audita todos los cursos de la plataforma.</p>
+                            </div>
+                            <button onclick="cargarCursosAdmin()" class="p-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 shadow-sm" title="Actualizar datos">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                            </button>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="overflow-x-auto">
@@ -280,6 +290,24 @@
                             <ul id="lista-moderacion" class="divide-y divide-gray-200">
                                 <!-- JS -->
                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- MODAL NUEVO USUARIO -->
+                    <div id="modal-nuevo-usuario" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+                        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4 border-t-4 border-indigo-600 dynamic-border">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-slate-800 flex items-center"><i data-lucide="user-plus" class="h-5 w-5 mr-2 text-indigo-600 dynamic-text"></i> Invitar Usuario</h3>
+                                <button onclick="cerrarModalNuevoUsuario()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="h-5 w-5"></i></button>
+                            </div>
+                            <p class="text-sm text-slate-500 mb-4">Para mantener la seguridad criptográfica, los usuarios deben crear sus propias credenciales. Copia este enlace y envíalo al nuevo integrante.</p>
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between mb-6">
+                                <code id="link-invitacion" class="text-xs text-indigo-700 truncate w-[80%]">https://...</code>
+                                <button onclick="copiarEnlaceInvitacion()" class="p-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-md transition-colors" title="Copiar"><i data-lucide="copy" class="h-4 w-4"></i></button>
+                            </div>
+                            <div class="flex justify-end">
+                                <button onclick="cerrarModalNuevoUsuario()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">Cerrar</button>
+                            </div>
                         </div>
                     </div>
 
@@ -408,30 +436,36 @@
                 
                 nav.innerHTML = ''; 
 
+                // Variable global para controlar qué paneles ya cargaron datos
+                window.vistasCargadas = window.vistasCargadas || {};
+
                 window.cambiarVista = function(idVista) {
                     document.querySelectorAll('.vista-panel').forEach(panel => { panel.classList.add('hidden'); panel.classList.remove('block'); });
                     const vistaActiva = document.getElementById(idVista);
                     if(vistaActiva) { vistaActiva.classList.remove('hidden'); vistaActiva.classList.add('block'); }
                     
-                    // Disparadores dinámicos
-                    if(idVista === 'panel-admin-usuarios') cargarUsuariosAdmin();
-                    if(idVista === 'panel-admin-cursos') cargarCursosAdmin();
-                    if(idVista === 'panel-admin-reportes') cargarReportesAdmin();
-                    if(idVista === 'panel-admin-moderacion') cargarModeracionAdmin();
+                    // Solo cargar la primera vez, o usar el botón Refresh para forzar
+                    if(!window.vistasCargadas[idVista]) {
+                        if(idVista === 'panel-admin-usuarios') cargarUsuariosAdmin();
+                        if(idVista === 'panel-admin-cursos') cargarCursosAdmin();
+                        if(idVista === 'panel-admin-reportes') cargarReportesAdmin();
+                        if(idVista === 'panel-admin-moderacion') cargarModeracionAdmin();
+                        window.vistasCargadas[idVista] = true;
+                    }
                 };
 
                 // --- VISTA ADMINISTRADOR ---
                 if (userRole === 'administrador') {
                     document.getElementById('welcome-subtitle').textContent = 'Panel de Control General del Sistema.';
                     nav.innerHTML = `
-                        <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen Global</button>
+                        <button type="button" onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Resumen Global</button>
                         <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Gestión</p>
-                        <button onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Usuarios y Roles</button>
-                        <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Catálogo de Cursos</button>
+                        <button type="button" onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Usuarios y Roles</button>
+                        <button type="button" onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Catálogo de Cursos</button>
                         <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Sistema</p>
-                        <button onclick="cambiarVista('panel-admin-reportes')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes</button>
-                        <button onclick="cambiarVista('panel-admin-moderacion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="shield-alert" class="h-5 w-5 mr-3"></i> Moderación</button>
-                        <button onclick="cambiarVista('panel-admin-configuracion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</button>
+                        <button type="button" onclick="cambiarVista('panel-admin-reportes')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes</button>
+                        <button type="button" onclick="cambiarVista('panel-admin-moderacion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="shield-alert" class="h-5 w-5 mr-3"></i> Moderación</button>
+                        <button type="button" onclick="cambiarVista('panel-admin-configuracion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</button>
                     `;
                     widgets.innerHTML = `${createWidget('Usuarios Registrados', 'Cargando...', 'users', 'blue', 'widget-usuarios-count')} ${createWidget('Cursos Creados', 'Cargando...', 'book-open', 'purple', 'widget-cursos-count')} ${createWidget('Estado Sistema', 'Óptimo', 'check-circle', 'green')}`;
                     cargarStatsResumen();
@@ -524,6 +558,26 @@
                 userBans[userId] = !userBans[userId];
                 localStorage.setItem('banned_users', JSON.stringify(userBans));
                 cargarUsuariosAdmin();
+            };
+
+            // MODAL NUEVO USUARIO LÓGICA
+            window.abrirModalNuevoUsuario = function() {
+                const modal = document.getElementById('modal-nuevo-usuario');
+                const linkCode = document.getElementById('link-invitacion');
+                // Toma la URL actual de tu página automáticamente
+                linkCode.textContent = window.location.origin + window.location.pathname;
+                modal.classList.remove('hidden');
+            };
+
+            window.cerrarModalNuevoUsuario = function() {
+                document.getElementById('modal-nuevo-usuario').classList.add('hidden');
+            };
+
+            window.copiarEnlaceInvitacion = function() {
+                const link = document.getElementById('link-invitacion').textContent;
+                document.execCommand('copy'); // Fallback para iFrames
+                navigator.clipboard.writeText(link).catch(() => {});
+                alert("Enlace copiado al portapapeles. ¡Envíalo al nuevo usuario!");
             };
 
             // ==========================================
@@ -681,6 +735,9 @@
                 DOM.btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate como alumno' : '¿Ya tienes cuenta? Inicia sesión';
                 
+                // Limpiar campos para evitar mezclar credenciales de Registro y Login
+                DOM.authForm.reset();
+                
                 const registerFields = document.getElementById('register-fields');
                 if (isLoginMode) {
                     registerFields.classList.add('hidden');
@@ -736,6 +793,8 @@
             const handleLogout = async () => {
                 setLoader(true, "Cerrando sesión...");
                 await supabaseClient.auth.signOut();
+                DOM.authForm.reset(); // Limpiar inputs por seguridad
+                window.vistasCargadas = {}; // Borrar memoria caché de las vistas
             };
             document.getElementById('btn-logout').addEventListener('click', handleLogout);
             document.getElementById('btn-logout-mobile').addEventListener('click', handleLogout);
