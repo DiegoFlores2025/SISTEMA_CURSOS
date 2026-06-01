@@ -398,6 +398,14 @@
                             <form id="form-crear-curso" class="space-y-4">
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Título del Curso</label><input type="text" id="curso-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Descripción corta</label><textarea id="curso-desc" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea></div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado del Curso</label>
+                                    <select id="curso-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                        <option value="borrador" selected>Borrador</option>
+                                        <option value="publicado">Publicado</option>
+                                        <option value="archivado">Archivado</option>
+                                    </select>
+                                </div>
                                 <div class="flex justify-end gap-2 mt-6">
                                     <button type="button" onclick="document.getElementById('modal-crear-curso').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm">Cancelar</button>
                                     <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">Guardar Curso</button>
@@ -666,7 +674,7 @@
                                 </select>
                             </td>
                         </tr>`).join('');
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
             window.cambiarEstadoC = async function(id, st) { await window.db.from('courses').update({status: st}).eq('id', id); };
 
@@ -724,7 +732,7 @@
                         instructor_id: STATE.userId,
                         title: document.getElementById('curso-titulo').value,
                         description: document.getElementById('curso-desc').value,
-                        status: 'borrador'
+                        status: (document.getElementById('curso-status') && document.getElementById('curso-status').value) ? document.getElementById('curso-status').value : 'borrador'
                     }]);
                     if (error) throw error;
                     document.getElementById('modal-crear-curso').classList.add('hidden');
@@ -755,7 +763,7 @@
                                 <button onclick="window.editarCurso('${c.id}', '${c.title}')" class="flex-1 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200">Editar Contenido</button>
                             </div>
                         </div>`).join('');
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
 
             window.editarCurso = function(cursoId, cursoTitulo) {
@@ -800,7 +808,7 @@
                             </div>
                         </div>`).join('');
                     lucide.createIcons();
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
 
             window.abrirModalRecurso = (modId) => {
@@ -846,7 +854,7 @@
                             </div>
                         </div>`).join('');
                     lucide.createIcons();
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
 
             window.inscribirseEnCurso = async function(cursoId) {
@@ -881,7 +889,7 @@
                             </div>
                         </div>`}).join('');
                     lucide.createIcons();
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
 
             window.entrarAulaVirtual = function(cursoId, cursoTitulo) {
@@ -912,7 +920,7 @@
                             </div>
                         </div>`).join('');
                     lucide.createIcons();
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
 
             window.verRecurso = function(tipo, url, titulo) {
