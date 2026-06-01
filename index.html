@@ -8,9 +8,10 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Animaciones para transiciones más suaves */
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -88,8 +89,8 @@
                 </div>
             </div>
 
-            <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                <!-- Se llenará dinámicamente con JavaScript -->
+            <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1 overflow-y-auto hide-scrollbar">
+                <!-- JS Menu -->
             </nav>
 
             <div class="p-4 bg-black/20 shrink-0">
@@ -191,6 +192,90 @@
                         </div>
                     </div>
 
+                    <!-- 3. Admin: Reportes Globales -->
+                    <div id="panel-admin-reportes" class="vista-panel hidden fade-in">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Reportes Globales</h2>
+                                <p class="text-slate-500 mt-1">Métricas de rendimiento e inscripciones en la plataforma.</p>
+                            </div>
+                            <button onclick="cargarReportesAdmin()" class="p-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 shadow-sm" title="Actualizar">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-slate-500 mb-1">Total Alumnos</p><p class="text-2xl font-bold text-slate-800" id="stat-alumnos">0</p></div>
+                                <i data-lucide="users" class="h-8 w-8 text-blue-200"></i>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-slate-500 mb-1">Total Docentes</p><p class="text-2xl font-bold text-slate-800" id="stat-docentes">0</p></div>
+                                <i data-lucide="user-check" class="h-8 w-8 text-amber-200"></i>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-slate-500 mb-1">Cursos Creados</p><p class="text-2xl font-bold text-slate-800" id="stat-cursos-pub">0</p></div>
+                                <i data-lucide="book-open" class="h-8 w-8 text-purple-200"></i>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-slate-500 mb-1">Actividad</p><p class="text-2xl font-bold text-green-600">Alta</p></div>
+                                <i data-lucide="activity" class="h-8 w-8 text-green-200"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <h3 class="text-lg font-medium text-slate-700 mb-4">Usuarios Registrados (Simulación de 6 meses)</h3>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chart-inscripciones"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Admin: Configuración -->
+                    <div id="panel-admin-configuracion" class="vista-panel hidden fade-in">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-800">Configuración del Sistema</h2>
+                            <p class="text-slate-500 mt-1">Personaliza la apariencia de la plataforma.</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-6 border-b border-slate-200">
+                                <h3 class="text-lg font-semibold text-slate-800">Identidad de Marca</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Nombre de la Plataforma</label>
+                                        <input type="text" id="config-sitename" value="EduGestión" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Color Principal (Barra Lateral)</label>
+                                        <div class="flex items-center">
+                                            <input type="color" id="config-color" value="#0f172a" class="h-10 w-10 border-0 p-0 mr-3 rounded cursor-pointer">
+                                            <input type="text" id="config-color-text" value="#0f172a" class="w-full px-3 py-2 border border-slate-300 rounded-lg" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-50 flex justify-end">
+                                <button id="btn-save-config" class="px-4 py-2 text-white rounded-lg shadow-sm bg-indigo-600 hover:opacity-90 dynamic-bg">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Admin: Moderación -->
+                    <div id="panel-admin-moderacion" class="vista-panel hidden fade-in">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Moderación de Foros</h2>
+                            </div>
+                            <button onclick="cargarModeracionAdmin()" class="p-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 shadow-sm">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <ul id="lista-moderacion" class="divide-y divide-gray-200"></ul>
+                        </div>
+                    </div>
+
                     <!-- ========================================== -->
                     <!-- VISTAS DEL DOCENTE                         -->
                     <!-- ========================================== -->
@@ -211,10 +296,7 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- Grid de cursos del docente -->
-                        <div id="grid-docente-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- JS -->
-                        </div>
+                        <div id="grid-docente-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                     </div>
 
                     <!-- 2. Docente: Editor de Curso (Módulos) -->
@@ -228,8 +310,18 @@
                                 <i data-lucide="folder-plus" class="h-4 w-4 mr-2"></i> Nuevo Módulo
                             </button>
                         </div>
-                        <div id="lista-modulos-editor" class="space-y-4">
-                            <!-- JS -->
+                        <div id="lista-modulos-editor" class="space-y-4"></div>
+                    </div>
+
+                    <!-- 3. Docente: Gestión de Alumnos y Evaluaciones (Plantillas) -->
+                    <div id="panel-docente-alumnos" class="vista-panel hidden fade-in">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-slate-800">Gestión de Alumnos</h2>
+                            <p class="text-slate-500 mt-1">Supervisa el progreso de tus inscritos.</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500">
+                            <i data-lucide="users" class="h-12 w-12 mx-auto text-slate-300 mb-4"></i>
+                            El panel de calificaciones estará disponible cuando los alumnos comiencen a subir tareas.
                         </div>
                     </div>
 
@@ -248,9 +340,7 @@
                                 <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                             </button>
                         </div>
-                        <div id="grid-catalogo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- JS -->
-                        </div>
+                        <div id="grid-catalogo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                     </div>
 
                     <!-- 2. Alumno: Mis Cursos Inscritos -->
@@ -264,9 +354,7 @@
                                 <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                             </button>
                         </div>
-                        <div id="grid-alumno-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- JS -->
-                        </div>
+                        <div id="grid-alumno-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                     </div>
 
                     <!-- 3. Alumno: Aula Virtual (Estudiar Curso) -->
@@ -276,14 +364,10 @@
                             <h2 class="text-3xl font-bold text-slate-800" id="aula-curso-titulo">Aula Virtual</h2>
                         </div>
                         <div class="flex flex-col lg:flex-row gap-6">
-                            <!-- Temario Lateral -->
                             <div class="lg:w-1/3 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start sticky top-4">
                                 <div class="bg-slate-50 p-4 border-b border-slate-200 font-semibold text-slate-700">Temario del Curso</div>
-                                <div id="aula-modulos" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
-                                    <!-- JS -->
-                                </div>
+                                <div id="aula-modulos" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto hide-scrollbar"></div>
                             </div>
-                            <!-- Visor de Contenido -->
                             <div class="lg:w-2/3 bg-white rounded-xl shadow-sm border border-slate-200 p-8 min-h-[50vh] flex flex-col items-center justify-center text-center" id="aula-visor">
                                 <i data-lucide="monitor-play" class="h-16 w-16 text-slate-200 mb-4"></i>
                                 <h3 class="text-xl font-medium text-slate-600">Selecciona un recurso</h3>
@@ -292,12 +376,10 @@
                         </div>
                     </div>
 
-
                     <!-- ========================================== -->
-                    <!-- MODALES (VENTANAS EMERGENTES PARA FORMULARIOS) -->
+                    <!-- MODALES (VENTANAS EMERGENTES)              -->
                     <!-- ========================================== -->
                     
-                    <!-- Modal Invitación Admin -->
                     <div id="modal-invitacion" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
                         <div class="bg-white rounded-xl p-6 w-full max-w-md m-4 border-t-4 border-indigo-600 dynamic-border shadow-2xl">
                             <h3 class="text-lg font-bold text-slate-800 mb-2">Invitar Usuario</h3>
@@ -310,19 +392,12 @@
                         </div>
                     </div>
 
-                    <!-- Modal Crear Curso (Docente) -->
                     <div id="modal-crear-curso" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
                         <div class="bg-white rounded-xl p-6 w-full max-w-md m-4 shadow-2xl">
                             <h3 class="text-xl font-bold text-slate-800 mb-4">Crear Nuevo Curso</h3>
                             <form id="form-crear-curso" class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Título del Curso</label>
-                                    <input type="text" id="curso-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción corta</label>
-                                    <textarea id="curso-desc" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
-                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Título del Curso</label><input type="text" id="curso-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Descripción corta</label><textarea id="curso-desc" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea></div>
                                 <div class="flex justify-end gap-2 mt-6">
                                     <button type="button" onclick="document.getElementById('modal-crear-curso').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm">Cancelar</button>
                                     <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">Guardar Curso</button>
@@ -331,51 +406,37 @@
                         </div>
                     </div>
 
-                    <!-- Modal Crear Módulo (Docente) -->
                     <div id="modal-crear-modulo" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
                         <div class="bg-white rounded-xl p-6 w-full max-w-sm m-4 shadow-2xl">
                             <h3 class="text-lg font-bold text-slate-800 mb-4">Añadir Módulo / Semana</h3>
                             <form id="form-crear-modulo" class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre (Ej: Semana 1 - Introducción)</label>
-                                    <input type="text" id="modulo-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Nombre (Ej: Semana 1)</label><input type="text" id="modulo-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                                 <div class="flex justify-end gap-2 mt-6">
                                     <button type="button" onclick="document.getElementById('modal-crear-modulo').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm">Cancelar</button>
-                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Crear Módulo</button>
+                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Crear</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- Modal Subir Recurso (Docente) -->
                     <div id="modal-subir-recurso" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
                         <div class="bg-white rounded-xl p-6 w-full max-w-md m-4 shadow-2xl">
                             <h3 class="text-lg font-bold text-slate-800 mb-4">Añadir Material</h3>
                             <form id="form-subir-recurso" class="space-y-4">
                                 <input type="hidden" id="recurso-modulo-id">
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Título del Recurso</label><input type="text" id="recurso-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Título del Recurso</label>
-                                    <input type="text" id="recurso-titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                                    <select id="recurso-tipo" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                        <option value="video">Video (YouTube/Link)</option>
+                                        <option value="pdf">Documento PDF</option>
+                                        <option value="enlace">Enlace Externo</option>
+                                    </select>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                                        <select id="recurso-tipo" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                            <option value="video">Video (YouTube/Link)</option>
-                                            <option value="pdf">Documento PDF</option>
-                                            <option value="enlace">Enlace Externo</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL / Enlace del recurso</label>
-                                    <input type="url" id="recurso-url" required placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                    <p class="text-xs text-slate-500 mt-1">Por ahora usamos URLs externas para simular el almacenamiento.</p>
-                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">URL / Enlace</label><input type="url" id="recurso-url" required placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg"></div>
                                 <div class="flex justify-end gap-2 mt-6">
                                     <button type="button" onclick="document.getElementById('modal-subir-recurso').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm">Cancelar</button>
-                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Añadir Material</button>
+                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Añadir</button>
                                 </div>
                             </form>
                         </div>
@@ -391,46 +452,49 @@
     <!-- ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ==========================================
-        // SISTEMA ANTI-BLOQUEO (FAILSAFE GLOBAL)
-        // Si hay un error crítico de código, quita la pantalla de carga
         window.onerror = function(msg, url, line) {
             console.error("Error crítico en línea " + line + ":", msg);
             document.getElementById('global-loader').classList.add('hidden');
         };
-        // ==========================================
 
-        // Variables Globales de Estado
-        const STATE = {
-            userProfile: null,
-            userId: null,
-            cursoEnEdicion: null, // ID del curso que el docente está editando
-            cursoEnEstudio: null  // ID del curso que el alumno está estudiando
-        };
+        const STATE = { userProfile: null, userId: null, cursoEnEdicion: null, cursoEnEstudio: null };
+        let chartInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
 
-            const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
-            const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-            window.db = supabaseClient; // Disponible globalmente
+            const supabaseClient = supabase.createClient('https://ophwmlnehunaqalgsrvb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4');
+            window.db = supabaseClient; 
 
-            const DOM = {
-                loader: document.getElementById('global-loader'),
-                viewAuth: document.getElementById('view-auth'),
-                viewDashboard: document.getElementById('view-dashboard')
-            };
-
-            const setLoader = (show, text = "Cargando...") => {
-                if (show) {
-                    document.getElementById('loader-text').textContent = text;
-                    DOM.loader.classList.remove('hidden');
-                } else DOM.loader.classList.add('hidden');
-            };
+            const DOM = { loader: document.getElementById('global-loader'), viewAuth: document.getElementById('view-auth'), viewDashboard: document.getElementById('view-dashboard') };
+            const setLoader = (show, text = "Cargando...") => { if (show) { document.getElementById('loader-text').textContent = text; DOM.loader.classList.remove('hidden'); } else DOM.loader.classList.add('hidden'); };
 
             // ==========================================
-            // LÓGICA DE SESIÓN Y AUTO-HEAL
+            // CONFIGURACIÓN DE APARIENCIA
+            // ==========================================
+            function applyConfig() {
+                const config = JSON.parse(localStorage.getItem('edu_config')) || { name: 'EduGestión', color: '#0f172a' };
+                document.querySelectorAll('.brand-name-display').forEach(el => el.textContent = config.name);
+                document.getElementById('page-title').textContent = `${config.name} - Plataforma de Cursos`;
+                document.getElementById('config-sitename').value = config.name;
+                document.getElementById('sidebar-container').style.backgroundColor = config.color;
+                document.getElementById('mobile-header').style.backgroundColor = config.color;
+                document.querySelectorAll('.dynamic-bg').forEach(el => el.style.backgroundColor = config.color);
+                document.querySelectorAll('.dynamic-text').forEach(el => el.style.color = config.color);
+                document.querySelectorAll('.dynamic-border').forEach(el => el.style.borderColor = config.color);
+                document.getElementById('config-color').value = config.color;
+                document.getElementById('config-color-text').value = config.color;
+            }
+            applyConfig();
+            
+            document.getElementById('config-color').addEventListener('input', function() { document.getElementById('config-color-text').value = this.value; });
+            document.getElementById('btn-save-config').addEventListener('click', () => {
+                localStorage.setItem('edu_config', JSON.stringify({ name: document.getElementById('config-sitename').value, color: document.getElementById('config-color').value }));
+                applyConfig(); alert("Configuración guardada.");
+            });
+
+            // ==========================================
+            // LÓGICA DE SESIÓN
             // ==========================================
             const loadUserProfile = async (session) => {
                 setLoader(true, "Iniciando sesión...");
@@ -438,51 +502,28 @@
                     STATE.userId = session.user.id;
                     const { data: profile, error } = await window.db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
 
-                    if (error) throw error;
-                    
                     let currentProfile = profile;
-                    
-                    // Auto-Heal: Si el perfil no existe, lo crea automáticamente
                     if (!currentProfile) {
-                        const { data: newProfile, error: insErr } = await window.db.from('profiles')
-                            .insert([{ 
-                                id: session.user.id, 
-                                email: session.user.email, 
-                                first_name: session.user.user_metadata?.first_name || 'U', 
-                                last_name: session.user.user_metadata?.last_name || '', 
-                                role: 'alumno' 
-                            }])
-                            .select().single();
+                        const { data: newProfile, error: insErr } = await window.db.from('profiles').insert([{ id: session.user.id, email: session.user.email, first_name: session.user.user_metadata?.first_name || 'U', last_name: session.user.user_metadata?.last_name || '', role: 'alumno' }]).select().single();
                         if (insErr) throw new Error("Fallo creando perfil.");
                         currentProfile = newProfile;
                     }
 
                     STATE.userProfile = currentProfile;
                     buildDashboard(currentProfile, session.user.email);
-                    
-                    DOM.viewAuth.classList.add('hidden');
-                    DOM.viewDashboard.classList.remove('hidden');
-
+                    DOM.viewAuth.classList.add('hidden'); DOM.viewDashboard.classList.remove('hidden');
                 } catch (error) {
-                    console.error("Error Auth:", error);
-                    alert("Hubo un error cargando tus datos. Reintenta.");
-                    await window.db.auth.signOut();
-                } finally {
-                    setLoader(false);
-                }
+                    alert("Hubo un error cargando tus datos."); await window.db.auth.signOut();
+                } finally { setLoader(false); }
             };
 
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-                    if (session) loadUserProfile(session);
-                    else { DOM.viewAuth.classList.remove('hidden'); DOM.viewDashboard.classList.add('hidden'); setLoader(false); }
+                    if (session) loadUserProfile(session); else { DOM.viewAuth.classList.remove('hidden'); DOM.viewDashboard.classList.add('hidden'); setLoader(false); }
                 } else if (event === 'SIGNED_OUT') {
-                    STATE.userProfile = null;
-                    STATE.userId = null;
+                    STATE.userProfile = null; STATE.userId = null;
                     document.getElementById('auth-form').reset();
-                    DOM.viewAuth.classList.remove('hidden');
-                    DOM.viewDashboard.classList.add('hidden');
-                    setLoader(false);
+                    DOM.viewAuth.classList.remove('hidden'); DOM.viewDashboard.classList.add('hidden'); setLoader(false);
                 }
             });
 
@@ -494,9 +535,11 @@
                 const v = document.getElementById(idVista);
                 if(v) { v.classList.remove('hidden'); v.classList.add('block'); }
                 
-                // Disparadores automáticos al cambiar de pestaña
+                // Disparadores Automáticos
                 if(idVista === 'panel-admin-usuarios') window.cargarUsuariosAdmin();
                 if(idVista === 'panel-admin-cursos') window.cargarCursosAdmin();
+                if(idVista === 'panel-admin-reportes') window.cargarReportesAdmin();
+                if(idVista === 'panel-admin-moderacion') window.cargarModeracionAdmin();
                 if(idVista === 'panel-docente-cursos') window.cargarCursosDocente();
                 if(idVista === 'panel-alumno-catalogo') window.cargarCatalogoCursos();
                 if(idVista === 'panel-alumno-miscursos') window.cargarCursosAlumno();
@@ -520,6 +563,10 @@
                         <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Gestión</p>
                         <button onclick="cambiarVista('panel-admin-usuarios')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Usuarios</button>
                         <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</button>
+                        <p class="px-4 mt-4 mb-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Sistema</p>
+                        <button onclick="cambiarVista('panel-admin-reportes')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="bar-chart" class="h-5 w-5 mr-3"></i> Reportes</button>
+                        <button onclick="cambiarVista('panel-admin-moderacion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="shield-alert" class="h-5 w-5 mr-3"></i> Moderación</button>
+                        <button onclick="cambiarVista('panel-admin-configuracion')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configuración</button>
                     `;
                     document.getElementById('dashboard-widgets').innerHTML = `${widgetHTML('Usuarios', '0', 'users', 'blue', 'w-u')} ${widgetHTML('Cursos', '0', 'book', 'purple', 'w-c')}`;
                     window.cargarStatsGlobales();
@@ -530,6 +577,7 @@
                     nav.innerHTML = `
                         <button onclick="cambiarVista('panel-resumen')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 rounded-lg"><i data-lucide="layout-dashboard" class="h-5 w-5 mr-3"></i> Mi Panel</button>
                         <button onclick="cambiarVista('panel-docente-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 rounded-lg"><i data-lucide="book" class="h-5 w-5 mr-3"></i> Mis Cursos Dictados</button>
+                        <button onclick="cambiarVista('panel-docente-alumnos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 rounded-lg"><i data-lucide="users" class="h-5 w-5 mr-3"></i> Alumnos</button>
                     `;
                     document.getElementById('dashboard-widgets').innerHTML = widgetHTML('Cursos Dictados', '0', 'book-open', 'amber', 'w-dc');
                 }
@@ -554,7 +602,7 @@
             }
 
             // ==========================================
-            // FUNCIONALIDADES DEL ADMINISTRADOR
+            // FUNCIONES ADMIN (Todo Restaurado)
             // ==========================================
             window.cargarStatsGlobales = async function() {
                 try {
@@ -582,7 +630,6 @@
                                 </select>
                             </td>
                             <td class="px-6 py-4"><span class="px-2 text-xs bg-green-100 text-green-800 rounded-full">Activo</span></td>
-                            <td class="px-6 py-4 text-right"><button class="text-indigo-600 hover:underline">Editar</button></td>
                         </tr>`).join('');
                 } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Error.</td></tr>'; }
             };
@@ -618,7 +665,41 @@
                 document.getElementById('link-invitacion').textContent = window.location.origin + window.location.pathname;
                 document.getElementById('modal-invitacion').classList.remove('hidden');
             };
-            window.copiarLink = () => { navigator.clipboard.writeText(window.location.origin + window.location.pathname); alert("Copiado"); };
+            window.copiarLink = () => { navigator.clipboard.writeText(window.location.origin + window.location.pathname); alert("Enlace Copiado"); };
+
+            window.cargarReportesAdmin = async function() {
+                try {
+                    const { count: cA } = await window.db.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'alumno');
+                    const { count: cD } = await window.db.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'docente');
+                    const { count: cC } = await window.db.from('courses').select('*', { count: 'exact', head: true });
+                    document.getElementById('stat-alumnos').textContent = cA || 0;
+                    document.getElementById('stat-docentes').textContent = cD || 0;
+                    document.getElementById('stat-cursos-pub').textContent = cC || 0;
+
+                    const ctx = document.getElementById('chart-inscripciones').getContext('2d');
+                    if(chartInstance) chartInstance.destroy();
+                    chartInstance = new Chart(ctx, {
+                        type: 'line', data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'], datasets: [{ label: 'Nuevos Alumnos', data: [5, 12, 18, 25, 22, (cA || 0)], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.3, fill: true }] },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                } catch(e){}
+            };
+
+            window.cargarModeracionAdmin = async function() {
+                const lista = document.getElementById('lista-moderacion');
+                lista.innerHTML = '<li class="p-6 text-center text-gray-500">Buscando comentarios reportados...</li>';
+                try {
+                    const { data, error } = await window.db.from('comments').select('*, user:user_id(first_name, last_name)').order('created_at', { ascending: false });
+                    if(error) throw error;
+                    if(!data || data.length === 0) { lista.innerHTML = `<li class="p-8 text-center text-gray-500 flex flex-col items-center"><i data-lucide="shield-check" class="h-12 w-12 text-green-500 mb-2"></i>Todo en orden. No hay comentarios.</li>`; lucide.createIcons(); return; }
+                    lista.innerHTML = data.map(com => `
+                        <li class="p-4 sm:px-6 hover:bg-gray-50 flex justify-between items-start">
+                            <div><p class="text-sm font-medium">${com.user ? com.user.first_name : 'Anónimo'}</p><p class="text-sm text-gray-500">"${com.message}"</p></div>
+                            <button onclick="window.eliminarComentario('${com.id}')" class="text-red-500 hover:underline text-xs">Eliminar</button>
+                        </li>`).join('');
+                } catch(e) { lista.innerHTML = `<li class="p-8 text-center text-gray-500">No hay tabla de comentarios aún.</li>`; }
+            };
+            window.eliminarComentario = async function(id) { if(confirm("¿Eliminar?")) { await window.db.from('comments').delete().eq('id', id); window.cargarModeracionAdmin(); } };
 
             // ==========================================
             // FUNCIONALIDADES DEL DOCENTE
@@ -630,16 +711,18 @@
                 const btn = e.target.querySelector('button[type="submit"]');
                 btn.disabled = true; btn.textContent = "Guardando...";
                 try {
-                    await window.db.from('courses').insert([{
+                    const { error } = await window.db.from('courses').insert([{
                         instructor_id: STATE.userId,
                         title: document.getElementById('curso-titulo').value,
                         description: document.getElementById('curso-desc').value,
                         status: 'borrador'
                     }]);
+                    if (error) throw error;
                     document.getElementById('modal-crear-curso').classList.add('hidden');
                     e.target.reset();
                     window.cargarCursosDocente();
-                } catch(err) { alert("Error."); } finally { btn.disabled = false; btn.textContent = "Guardar Curso"; }
+                    alert("Curso creado exitosamente.");
+                } catch(err) { alert("Error al crear. Verifica si ejecutaste el código SQL de permisos (RLS)."); console.error(err); } finally { btn.disabled = false; btn.textContent = "Guardar Curso"; }
             });
 
             window.cargarCursosDocente = async function() {
@@ -680,9 +763,8 @@
                 try {
                     await window.db.from('modules').insert([{ course_id: STATE.cursoEnEdicion, title: document.getElementById('modulo-titulo').value, order_index: 1 }]);
                     document.getElementById('modal-crear-modulo').classList.add('hidden');
-                    e.target.reset();
-                    window.cargarModulosDocente();
-                } catch(err) { alert("Error."); }
+                    e.target.reset(); window.cargarModulosDocente();
+                } catch(err) { alert("Error al guardar módulo."); }
             });
 
             window.cargarModulosDocente = async function() {
@@ -721,16 +803,12 @@
                 e.preventDefault();
                 try {
                     await window.db.from('resources').insert([{ 
-                        module_id: document.getElementById('recurso-modulo-id').value, 
-                        title: document.getElementById('recurso-titulo').value,
-                        type: document.getElementById('recurso-tipo').value,
-                        content_url: document.getElementById('recurso-url').value,
-                        order_index: 1
+                        module_id: document.getElementById('recurso-modulo-id').value, title: document.getElementById('recurso-titulo').value,
+                        type: document.getElementById('recurso-tipo').value, content_url: document.getElementById('recurso-url').value, order_index: 1
                     }]);
                     document.getElementById('modal-subir-recurso').classList.add('hidden');
-                    e.target.reset();
-                    window.cargarModulosDocente();
-                } catch(err) { alert("Error."); }
+                    e.target.reset(); window.cargarModulosDocente();
+                } catch(err) { alert("Error al añadir material."); }
             });
 
             window.eliminarRecurso = async function(id) {
@@ -780,7 +858,7 @@
                     if(error) throw error;
                     if(document.getElementById('w-ai')) document.getElementById('w-ai').textContent = data.length;
 
-                    if(data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-10 bg-white border border-dashed rounded-lg"><p class="text-slate-500 mb-3">No estás en ningún curso.</p></div>'; return; }
+                    if(data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-10 bg-white border border-dashed rounded-lg"><p class="text-slate-500 mb-3">No estás en ningún curso.</p><button onclick="cambiarVista(\'panel-alumno-catalogo\')" class="px-4 py-2 bg-indigo-600 text-white rounded">Ir al Catálogo</button></div>'; return; }
 
                     grid.innerHTML = data.map(enrol => {
                         const c = enrol.courses;
@@ -842,39 +920,31 @@
             };
 
             // ==========================================
-            // LOGIN Y REGISTRO (FORMULARIO)
+            // LOGIN Y REGISTRO
             // ==========================================
             let isLoginMode = true;
             document.getElementById('toggle-auth-mode').addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Accede a tu cuenta' : 'Regístrate para aprender';
-                document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                DOM.btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate como alumno' : '¿Ya tienes cuenta? Inicia sesión';
                 
                 const registerFields = document.getElementById('register-fields');
-                if (isLoginMode) {
-                    registerFields.classList.add('hidden');
-                    document.getElementById('first_name').removeAttribute('required');
-                    document.getElementById('last_name').removeAttribute('required');
-                } else {
-                    registerFields.classList.remove('hidden');
-                    document.getElementById('first_name').setAttribute('required', 'true');
-                    document.getElementById('last_name').setAttribute('required', 'true');
-                }
-                document.getElementById('auth-error').classList.add('hidden');
+                if (isLoginMode) { registerFields.classList.add('hidden'); document.getElementById('first_name').removeAttribute('required'); document.getElementById('last_name').removeAttribute('required'); } 
+                else { registerFields.classList.remove('hidden'); document.getElementById('first_name').setAttribute('required', 'true'); document.getElementById('last_name').setAttribute('required', 'true'); }
+                DOM.authError.classList.add('hidden');
             });
 
-            document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            DOM.authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
                 const firstName = document.getElementById('first_name').value.trim();
                 const lastName = document.getElementById('last_name').value.trim();
-                const btnSubmit = document.getElementById('btn-submit');
                 
-                document.getElementById('auth-error').classList.add('hidden');
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = 'Procesando...';
+                DOM.authError.classList.add('hidden');
+                DOM.btnSubmit.disabled = true;
+                DOM.btnSubmit.innerHTML = 'Procesando...';
 
                 try {
                     let result;
@@ -885,11 +955,11 @@
                     }
                     if (result.error) throw result.error;
                 } catch (error) {
-                    document.getElementById('auth-error').textContent = error.message === 'Invalid login credentials' ? 'Datos incorrectos.' : error.message;
-                    document.getElementById('auth-error').classList.remove('hidden');
+                    DOM.authError.textContent = error.message === 'Invalid login credentials' ? 'Datos incorrectos.' : error.message;
+                    DOM.authError.classList.remove('hidden');
                 } finally {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                    DOM.btnSubmit.disabled = false;
+                    DOM.btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 }
             });
 
