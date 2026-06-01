@@ -391,20 +391,22 @@
     <!-- ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Variables Globales de Estado (Para evitar recargas innecesarias)
+        // ==========================================
+        // SISTEMA ANTI-BLOQUEO (FAILSAFE GLOBAL)
+        // Si hay un error crítico de código, quita la pantalla de carga
+        window.onerror = function(msg, url, line) {
+            console.error("Error crítico en línea " + line + ":", msg);
+            document.getElementById('global-loader').classList.add('hidden');
+        };
+        // ==========================================
+
+        // Variables Globales de Estado
         const STATE = {
             userProfile: null,
             userId: null,
-            cursoEnEdicion: null, // Para el Docente
-            cursoEnEstudio: null  // Para el Alumno
+            cursoEnEdicion: null, // ID del curso que el docente está editando
+            cursoEnEstudio: null  // ID del curso que el alumno está estudiando
         };
-
-        // Hacer variables públicas para los eventos onclick del HTML
-        window.cargarUsuariosAdmin = cargarUsuariosAdmin;
-        window.cargarCursosAdmin = cargarCursosAdmin;
-        window.cargarCursosDocente = cargarCursosDocente;
-        window.cargarCatalogoCursos = cargarCatalogoCursos;
-        window.cargarCursosAlumno = cargarCursosAlumno;
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -412,9 +414,7 @@
             const supabaseUrl = 'https://ophwmlnehunaqalgsrvb.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4';
             const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-            // Hacer Supabase global para funciones auxiliares
-            window.db = supabaseClient;
+            window.db = supabaseClient; // Disponible globalmente
 
             const DOM = {
                 loader: document.getElementById('global-loader'),
@@ -429,36 +429,44 @@
                 } else DOM.loader.classList.add('hidden');
             };
 
-            // SISTEMA DE SESIÓN (AUTO-HEAL Y TIMEOUT)
+            // ==========================================
+            // LÓGICA DE SESIÓN Y AUTO-HEAL
+            // ==========================================
             const loadUserProfile = async (session) => {
                 setLoader(true, "Iniciando sesión...");
                 try {
                     STATE.userId = session.user.id;
+                    const { data: profile, error } = await window.db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
 
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000));
-                    const fetchPromise = supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-
-                    let { data: profile, error } = await Promise.race([fetchPromise, timeoutPromise]);
-                    if (error) throw new Error("Error de base de datos.");
-
-                    if (!profile) {
-                        const { data: newProfile, error: insErr } = await supabaseClient.from('profiles')
-                            .insert([{ id: session.user.id, email: session.user.email, first_name: session.user.user_metadata?.first_name || 'U', last_name: session.user.user_metadata?.last_name || '', role: 'alumno' }])
+                    if (error) throw error;
+                    
+                    let currentProfile = profile;
+                    
+                    // Auto-Heal: Si el perfil no existe, lo crea automáticamente
+                    if (!currentProfile) {
+                        const { data: newProfile, error: insErr } = await window.db.from('profiles')
+                            .insert([{ 
+                                id: session.user.id, 
+                                email: session.user.email, 
+                                first_name: session.user.user_metadata?.first_name || 'U', 
+                                last_name: session.user.user_metadata?.last_name || '', 
+                                role: 'alumno' 
+                            }])
                             .select().single();
                         if (insErr) throw new Error("Fallo creando perfil.");
-                        profile = newProfile;
+                        currentProfile = newProfile;
                     }
 
-                    STATE.userProfile = profile;
-                    buildDashboard(profile, session.user.email);
+                    STATE.userProfile = currentProfile;
+                    buildDashboard(currentProfile, session.user.email);
                     
                     DOM.viewAuth.classList.add('hidden');
                     DOM.viewDashboard.classList.remove('hidden');
 
                 } catch (error) {
                     console.error("Error Auth:", error);
-                    alert("No se pudo cargar el entorno de trabajo. Cerrando sesión por seguridad.");
-                    await supabaseClient.auth.signOut();
+                    alert("Hubo un error cargando tus datos. Reintenta.");
+                    await window.db.auth.signOut();
                 } finally {
                     setLoader(false);
                 }
@@ -479,19 +487,19 @@
             });
 
             // ==========================================
-            // CONSTRUCTOR DE MENÚS Y VISTAS
+            // GESTOR CENTRAL DE VISTAS (SPA)
             // ==========================================
             window.cambiarVista = function(idVista) {
                 document.querySelectorAll('.vista-panel').forEach(p => { p.classList.add('hidden'); p.classList.remove('block'); });
                 const v = document.getElementById(idVista);
                 if(v) { v.classList.remove('hidden'); v.classList.add('block'); }
                 
-                // Disparadores Automáticos Caches
-                if(idVista === 'panel-admin-usuarios') cargarUsuariosAdmin();
-                if(idVista === 'panel-admin-cursos') cargarCursosAdmin();
-                if(idVista === 'panel-docente-cursos') cargarCursosDocente();
-                if(idVista === 'panel-alumno-catalogo') cargarCatalogoCursos();
-                if(idVista === 'panel-alumno-miscursos') cargarCursosAlumno();
+                // Disparadores automáticos al cambiar de pestaña
+                if(idVista === 'panel-admin-usuarios') window.cargarUsuariosAdmin();
+                if(idVista === 'panel-admin-cursos') window.cargarCursosAdmin();
+                if(idVista === 'panel-docente-cursos') window.cargarCursosDocente();
+                if(idVista === 'panel-alumno-catalogo') window.cargarCatalogoCursos();
+                if(idVista === 'panel-alumno-miscursos') window.cargarCursosAlumno();
             };
 
             function buildDashboard(profile, email) {
@@ -502,9 +510,7 @@
                 
                 const rb = document.getElementById('role-badge');
                 rb.textContent = role.toUpperCase();
-
                 const nav = document.getElementById('sidebar-nav');
-                nav.innerHTML = ''; 
 
                 if (role === 'administrador') {
                     rb.className = 'px-2 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30';
@@ -516,7 +522,7 @@
                         <button onclick="cambiarVista('panel-admin-cursos')" class="w-full flex items-center px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors"><i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Todos los Cursos</button>
                     `;
                     document.getElementById('dashboard-widgets').innerHTML = `${widgetHTML('Usuarios', '0', 'users', 'blue', 'w-u')} ${widgetHTML('Cursos', '0', 'book', 'purple', 'w-c')}`;
-                    cargarStatsGlobales();
+                    window.cargarStatsGlobales();
                 } 
                 else if (role === 'docente') {
                     rb.className = 'px-2 py-1 rounded text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
@@ -548,97 +554,124 @@
             }
 
             // ==========================================
-            // LÓGICA ADMINISTRADOR (Global)
+            // FUNCIONALIDADES DEL ADMINISTRADOR
             // ==========================================
-            async function cargarStatsGlobales() {
+            window.cargarStatsGlobales = async function() {
                 try {
                     const { count: cU } = await window.db.from('profiles').select('*', { count: 'exact', head: true });
                     const { count: cC } = await window.db.from('courses').select('*', { count: 'exact', head: true });
                     if(document.getElementById('w-u')) document.getElementById('w-u').textContent = cU || 0;
                     if(document.getElementById('w-c')) document.getElementById('w-c').textContent = cC || 0;
                 } catch(e){}
-            }
+            };
 
-            // Modal Invitación Admin
-            window.abrirModalInvitacion = function() {
+            window.cargarUsuariosAdmin = async function() {
+                const tbody = document.getElementById('tbody-admin-usuarios');
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Cargando...</td></tr>';
+                try {
+                    const { data, error } = await window.db.from('profiles').select('*').order('created_at', { ascending: false });
+                    if(error) throw error;
+                    tbody.innerHTML = data.map(u => `
+                        <tr>
+                            <td class="px-6 py-4"><div class="font-medium text-gray-900">${u.first_name} ${u.last_name}</div><div class="text-xs text-gray-500">${u.email}</div></td>
+                            <td class="px-6 py-4">
+                                <select onchange="window.cambiarRol('${u.id}', this.value)" class="text-sm border-gray-300 rounded p-1">
+                                    <option value="alumno" ${u.role==='alumno'?'selected':''}>Alumno</option>
+                                    <option value="docente" ${u.role==='docente'?'selected':''}>Docente</option>
+                                    <option value="administrador" ${u.role==='administrador'?'selected':''}>Admin</option>
+                                </select>
+                            </td>
+                            <td class="px-6 py-4"><span class="px-2 text-xs bg-green-100 text-green-800 rounded-full">Activo</span></td>
+                            <td class="px-6 py-4 text-right"><button class="text-indigo-600 hover:underline">Editar</button></td>
+                        </tr>`).join('');
+                } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Error.</td></tr>'; }
+            };
+
+            window.cambiarRol = async function(id, rol) {
+                await window.db.from('profiles').update({ role: rol }).eq('id', id);
+                alert("Rol actualizado.");
+            };
+
+            window.cargarCursosAdmin = async function() {
+                const tbody = document.getElementById('tbody-admin-cursos');
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Cargando...</td></tr>';
+                try {
+                    const { data, error } = await window.db.from('courses').select('*, instructor:instructor_id(first_name, last_name)');
+                    if(error) throw error;
+                    tbody.innerHTML = data.map(c => `
+                        <tr>
+                            <td class="px-6 py-4"><div class="font-medium">${c.title}</div></td>
+                            <td class="px-6 py-4 text-sm">${c.instructor ? c.instructor.first_name : 'N/A'}</td>
+                            <td class="px-6 py-4">
+                                <select onchange="window.cambiarEstadoC('${c.id}', this.value)" class="text-sm border-gray-300 rounded p-1">
+                                    <option value="borrador" ${c.status==='borrador'?'selected':''}>Borrador</option>
+                                    <option value="publicado" ${c.status==='publicado'?'selected':''}>Publicado</option>
+                                    <option value="archivado" ${c.status==='archivado'?'selected':''}>Archivado</option>
+                                </select>
+                            </td>
+                        </tr>`).join('');
+                } catch(e) {}
+            };
+            window.cambiarEstadoC = async function(id, st) { await window.db.from('courses').update({status: st}).eq('id', id); };
+
+            window.abrirModalInvitacion = () => {
                 document.getElementById('link-invitacion').textContent = window.location.origin + window.location.pathname;
                 document.getElementById('modal-invitacion').classList.remove('hidden');
-            }
-            window.copiarLink = function() {
-                navigator.clipboard.writeText(document.getElementById('link-invitacion').textContent);
-                alert("Enlace copiado. Compártelo para que se registren.");
-            }
+            };
+            window.copiarLink = () => { navigator.clipboard.writeText(window.location.origin + window.location.pathname); alert("Copiado"); };
 
             // ==========================================
+            // FUNCIONALIDADES DEL DOCENTE
             // ==========================================
             window.abrirModalCrearCurso = () => document.getElementById('modal-crear-curso').classList.remove('hidden');
             
             document.getElementById('form-crear-curso').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = e.target.querySelector('button[type="submit"]');
-                btn.disabled = true; btn.textContent = "Creando...";
-                
+                btn.disabled = true; btn.textContent = "Guardando...";
                 try {
-                    const { error } = await window.db.from('courses').insert([{
+                    await window.db.from('courses').insert([{
                         instructor_id: STATE.userId,
                         title: document.getElementById('curso-titulo').value,
                         description: document.getElementById('curso-desc').value,
-                        status: 'borrador' // Siempre nacen en borrador
+                        status: 'borrador'
                     }]);
-                    if (error) throw error;
-                    
                     document.getElementById('modal-crear-curso').classList.add('hidden');
                     e.target.reset();
-                    cargarCursosDocente();
-                } catch(err) { alert("Error creando curso."); }
-                finally { btn.disabled = false; btn.textContent = "Guardar Curso"; }
+                    window.cargarCursosDocente();
+                } catch(err) { alert("Error."); } finally { btn.disabled = false; btn.textContent = "Guardar Curso"; }
             });
 
-            async function cargarCursosDocente() {
+            window.cargarCursosDocente = async function() {
                 const grid = document.getElementById('grid-docente-cursos');
-                grid.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500">Cargando tus cursos...</p>';
-                
+                grid.innerHTML = '<p class="col-span-full text-center">Cargando tus cursos...</p>';
                 try {
-                    const { data, error } = await window.db.from('courses').select('*').eq('instructor_id', STATE.userId).order('created_at', { ascending: false });
+                    const { data, error } = await window.db.from('courses').select('*').eq('instructor_id', STATE.userId);
                     if(error) throw error;
-
                     if(document.getElementById('w-dc')) document.getElementById('w-dc').textContent = data.length;
-
-                    if(data.length === 0) { grid.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">No has creado cursos aún. Usa el botón superior.</p>'; return; }
+                    
+                    if(data.length === 0) { grid.innerHTML = '<p class="col-span-full text-center p-8 bg-white border border-dashed rounded-lg">No has creado cursos. Usa el botón superior.</p>'; return; }
 
                     grid.innerHTML = data.map(c => `
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition hover:shadow-md">
-                            <div class="h-32 bg-slate-800 relative">
-                                <div class="absolute top-3 right-3 px-2 py-1 bg-white/90 rounded text-xs font-bold ${c.status==='publicado'?'text-green-600':(c.status==='archivado'?'text-gray-500':'text-amber-600')}">${c.status.toUpperCase()}</div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="p-5 flex-1">
+                                <div class="text-xs font-bold ${c.status==='publicado'?'text-green-600':(c.status==='archivado'?'text-gray-500':'text-amber-600')} mb-2">${c.status.toUpperCase()}</div>
+                                <h3 class="text-lg font-bold text-slate-800">${c.title}</h3>
+                                <p class="text-sm text-slate-500 line-clamp-2 mt-2">${c.description}</p>
                             </div>
-                            <div class="p-5 flex-1 flex flex-col">
-                                <h3 class="text-lg font-bold text-slate-800 mb-1">${c.title}</h3>
-                                <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">${c.description}</p>
-                                <div class="flex gap-2">
-                                    <button onclick="editarCurso('${c.id}', '${c.title}')" class="flex-1 py-2 bg-indigo-50 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-100">Contenido</button>
-                                    <select onchange="cambiarEstadoCursoDocente('${c.id}', this.value)" class="text-sm border-gray-200 rounded-lg bg-gray-50 text-gray-600">
-                                        <option value="borrador" ${c.status === 'borrador' ? 'selected' : ''}>Borr</option>
-                                        <option value="publicado" ${c.status === 'publicado' ? 'selected' : ''}>Publ</option>
-                                    </select>
-                                </div>
+                            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                                <button onclick="window.editarCurso('${c.id}', '${c.title}')" class="flex-1 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200">Editar Contenido</button>
                             </div>
-                        </div>
-                    `).join('');
-                } catch(e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
-            }
+                        </div>`).join('');
+                } catch(e) {}
+            };
 
-            window.cambiarEstadoCursoDocente = async (id, status) => {
-                await window.db.from('courses').update({ status }).eq('id', id);
-                cargarCursosDocente();
-            }
-
-            // --- EDITOR DE CURSO (DOCENTE) ---
             window.editarCurso = function(cursoId, cursoTitulo) {
                 STATE.cursoEnEdicion = cursoId;
                 document.getElementById('editor-curso-titulo').textContent = `Gestionando: ${cursoTitulo}`;
-                cambiarVista('panel-docente-editor');
-                cargarModulosDocente();
-            }
+                window.cambiarVista('panel-docente-editor');
+                window.cargarModulosDocente();
+            };
 
             window.abrirModalCrearModulo = () => document.getElementById('modal-crear-modulo').classList.remove('hidden');
 
@@ -648,48 +681,41 @@
                     await window.db.from('modules').insert([{ course_id: STATE.cursoEnEdicion, title: document.getElementById('modulo-titulo').value, order_index: 1 }]);
                     document.getElementById('modal-crear-modulo').classList.add('hidden');
                     e.target.reset();
-                    cargarModulosDocente();
+                    window.cargarModulosDocente();
                 } catch(err) { alert("Error."); }
             });
 
-            async function cargarModulosDocente() {
+            window.cargarModulosDocente = async function() {
                 const lista = document.getElementById('lista-modulos-editor');
-                lista.innerHTML = '<p class="text-center py-4 text-gray-500">Cargando temario...</p>';
-                
+                lista.innerHTML = '<p class="text-center">Cargando temario...</p>';
                 try {
-                    // Consulta con relaciones (Join): Trae los módulos y sus recursos asociados
                     const { data, error } = await window.db.from('modules').select('*, resources(*)').eq('course_id', STATE.cursoEnEdicion).order('created_at', { ascending: true });
                     if(error) throw error;
-
                     if(data.length === 0) { lista.innerHTML = '<div class="p-8 text-center bg-white border border-dashed rounded-lg text-gray-500">Aún no hay módulos. Crea la primera semana de clases.</div>'; return; }
 
                     lista.innerHTML = data.map(mod => `
                         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-4 shadow-sm">
                             <div class="bg-slate-50 px-5 py-4 border-b border-slate-200 flex justify-between items-center">
                                 <h4 class="font-bold text-slate-800">${mod.title}</h4>
-                                <button onclick="abrirModalRecurso('${mod.id}')" class="text-sm bg-white border border-slate-200 px-3 py-1 rounded text-slate-600 hover:text-indigo-600">+ Recurso</button>
+                                <button onclick="window.abrirModalRecurso('${mod.id}')" class="text-sm text-indigo-600 hover:underline">+ Añadir Material</button>
                             </div>
                             <div class="p-2">
-                                ${mod.resources.length > 0 ? mod.resources.map(r => `
+                                ${mod.resources && mod.resources.length > 0 ? mod.resources.map(r => `
                                     <div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg group">
-                                        <div class="flex items-center text-sm text-slate-700">
-                                            <i data-lucide="${r.type === 'video' ? 'video' : 'file-text'}" class="h-4 w-4 mr-3 text-slate-400"></i> ${r.title}
-                                        </div>
-                                        <button onclick="eliminarRecurso('${r.id}')" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+                                        <div class="text-sm text-slate-700"><i data-lucide="${r.type === 'video' ? 'video' : 'file-text'}" class="h-4 w-4 inline mr-2 text-slate-400"></i> ${r.title}</div>
+                                        <button onclick="window.eliminarRecurso('${r.id}')" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
                                     </div>
                                 `).join('') : '<p class="text-sm text-slate-400 p-3 italic">Módulo vacío. Añade materiales.</p>'}
                             </div>
-                        </div>
-                    `).join('');
+                        </div>`).join('');
                     lucide.createIcons();
-                } catch(e) { lista.innerHTML = '<p class="text-red-500">Error cargando módulos.</p>'; }
-            }
+                } catch(e) {}
+            };
 
-            // Recursos
             window.abrirModalRecurso = (modId) => {
                 document.getElementById('recurso-modulo-id').value = modId;
                 document.getElementById('modal-subir-recurso').classList.remove('hidden');
-            }
+            };
 
             document.getElementById('form-subir-recurso').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -703,46 +729,38 @@
                     }]);
                     document.getElementById('modal-subir-recurso').classList.add('hidden');
                     e.target.reset();
-                    cargarModulosDocente();
+                    window.cargarModulosDocente();
                 } catch(err) { alert("Error."); }
             });
 
-            window.eliminarRecurso = async (id) => {
-                if(confirm("¿Eliminar este material?")) {
-                    await window.db.from('resources').delete().eq('id', id);
-                    cargarModulosDocente();
-                }
-            }
-
+            window.eliminarRecurso = async function(id) {
+                if(confirm("¿Eliminar material?")) { await window.db.from('resources').delete().eq('id', id); window.cargarModulosDocente(); }
+            };
 
             // ==========================================
+            // FUNCIONALIDADES DEL ALUMNO
             // ==========================================
-            async function cargarCatalogoCursos() {
+            window.cargarCatalogoCursos = async function() {
                 const grid = document.getElementById('grid-catalogo');
                 grid.innerHTML = '<p class="col-span-full text-center py-10">Cargando catálogo...</p>';
-                
                 try {
                     const { data, error } = await window.db.from('courses').select('*, instructor:instructor_id(first_name, last_name)').eq('status', 'publicado');
                     if(error) throw error;
-
                     if(data.length === 0) { grid.innerHTML = '<p class="col-span-full text-center py-10 bg-white border border-dashed rounded-lg">Aún no hay cursos públicos.</p>'; return; }
 
                     grid.innerHTML = data.map(c => `
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                            <div class="h-32 bg-indigo-900 flex items-center justify-center">
-                                <i data-lucide="book-open" class="h-10 w-10 text-white/50"></i>
-                            </div>
+                            <div class="h-32 bg-indigo-900 flex items-center justify-center"><i data-lucide="book-open" class="h-10 w-10 text-white/50"></i></div>
                             <div class="p-5 flex-1 flex flex-col">
                                 <h3 class="text-lg font-bold text-slate-800 mb-1">${c.title}</h3>
-                                <p class="text-xs font-medium text-indigo-600 mb-3">Por: ${c.instructor ? c.instructor.first_name + ' ' + c.instructor.last_name : 'Escuela'}</p>
+                                <p class="text-xs font-medium text-indigo-600 mb-3">Por: ${c.instructor ? c.instructor.first_name + ' ' + c.instructor.last_name : 'Docente'}</p>
                                 <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">${c.description}</p>
-                                <button onclick="inscribirseEnCurso('${c.id}')" class="w-full py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Inscribirme Ahora</button>
+                                <button onclick="window.inscribirseEnCurso('${c.id}')" class="w-full py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Inscribirme</button>
                             </div>
-                        </div>
-                    `).join('');
+                        </div>`).join('');
                     lucide.createIcons();
-                } catch(e) { grid.innerHTML = '<p class="text-red-500">Error.</p>'; }
-            }
+                } catch(e) {}
+            };
 
             window.inscribirseEnCurso = async function(cursoId) {
                 try {
@@ -750,60 +768,46 @@
                     if (error) {
                         if(error.code === '23505') alert("Ya estás inscrito en este curso.");
                         else throw error;
-                    } else {
-                        alert("¡Inscripción exitosa!");
-                        cambiarVista('panel-alumno-miscursos');
-                    }
-                } catch(err) { alert("Error en la inscripción."); console.error(err); }
-            }
+                    } else { alert("¡Inscripción exitosa!"); window.cambiarVista('panel-alumno-miscursos'); }
+                } catch(err) { alert("Error en la inscripción."); }
+            };
 
-            async function cargarCursosAlumno() {
+            window.cargarCursosAlumno = async function() {
                 const grid = document.getElementById('grid-alumno-cursos');
                 grid.innerHTML = '<p class="col-span-full text-center py-10">Cargando tus cursos...</p>';
-                
                 try {
-                    // Consulta compleja: Traer inscripciones y los datos del curso asociado
-                    const { data, error } = await window.db.from('enrollments').select('*, course:course_id(*)').eq('student_id', STATE.userId);
+                    const { data, error } = await window.db.from('enrollments').select('*, courses(*)').eq('student_id', STATE.userId);
                     if(error) throw error;
-                    
                     if(document.getElementById('w-ai')) document.getElementById('w-ai').textContent = data.length;
 
-                    if(data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-10 bg-white border border-dashed rounded-lg"><p class="text-slate-500 mb-3">No estás en ningún curso.</p><button onclick="cambiarVista(\'panel-alumno-catalogo\')" class="text-indigo-600 font-medium hover:underline">Ir al catálogo</button></div>'; return; }
+                    if(data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-10 bg-white border border-dashed rounded-lg"><p class="text-slate-500 mb-3">No estás en ningún curso.</p></div>'; return; }
 
                     grid.innerHTML = data.map(enrol => {
-                        const c = enrol.course;
+                        const c = enrol.courses;
                         return `
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                             <div class="p-5 flex-1 flex flex-col">
                                 <h3 class="text-lg font-bold text-slate-800 mb-4">${c.title}</h3>
-                                <!-- Barra Progreso (Visual) -->
-                                <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-                                  <div class="bg-green-500 h-2 rounded-full" style="width: ${enrol.progress_percentage}%"></div>
-                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mb-2"><div class="bg-green-500 h-2 rounded-full" style="width: ${enrol.progress_percentage}%"></div></div>
                                 <p class="text-xs text-slate-500 mb-4 text-right">${enrol.progress_percentage}% Completado</p>
-                                
-                                <button onclick="entrarAulaVirtual('${c.id}', '${c.title}')" class="w-full py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 flex justify-center items-center">
-                                    <i data-lucide="play-circle" class="h-4 w-4 mr-2"></i> Continuar
-                                </button>
+                                <button onclick="window.entrarAulaVirtual('${c.id}', '${c.title}')" class="w-full py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 flex justify-center items-center"><i data-lucide="play-circle" class="h-4 w-4 mr-2"></i> Continuar</button>
                             </div>
-                        </div>
-                    `}).join('');
+                        </div>`}).join('');
                     lucide.createIcons();
-                } catch(e) { grid.innerHTML = '<p class="text-red-500">Error.</p>'; }
-            }
+                } catch(e) {}
+            };
 
-            // --- AULA VIRTUAL (ALUMNO) ---
             window.entrarAulaVirtual = function(cursoId, cursoTitulo) {
                 STATE.cursoEnEstudio = cursoId;
                 document.getElementById('aula-curso-titulo').textContent = cursoTitulo;
                 document.getElementById('aula-visor').innerHTML = '<i data-lucide="monitor-play" class="h-16 w-16 text-slate-200 mb-4"></i><h3 class="text-xl font-medium text-slate-600">Selecciona un recurso</h3>';
-                cambiarVista('panel-alumno-aula');
-                cargarTemarioAula();
-            }
+                window.cambiarVista('panel-alumno-aula');
+                window.cargarTemarioAula();
+            };
 
-            async function cargarTemarioAula() {
+            window.cargarTemarioAula = async function() {
                 const nav = document.getElementById('aula-modulos');
-                nav.innerHTML = '<p class="p-4 text-sm text-slate-500 text-center">Cargando módulos...</p>';
+                nav.innerHTML = '<p class="p-4 text-sm text-center">Cargando...</p>';
                 try {
                     const { data, error } = await window.db.from('modules').select('*, resources(*)').eq('course_id', STATE.cursoEnEstudio).order('created_at', { ascending: true });
                     if(error) throw error;
@@ -813,98 +817,85 @@
                         <div class="p-0">
                             <div class="px-4 py-3 bg-slate-50 text-sm font-bold text-slate-700">${index + 1}. ${mod.title}</div>
                             <div class="bg-white">
-                                ${mod.resources.map(r => `
-                                    <button onclick="verRecurso('${r.type}', '${r.content_url}', '${r.title}')" class="w-full text-left px-5 py-3 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 flex items-center border-b border-slate-50 last:border-0 transition-colors">
+                                ${mod.resources ? mod.resources.map(r => `
+                                    <button onclick="window.verRecurso('${r.type}', '${r.content_url}', '${r.title}')" class="w-full text-left px-5 py-3 text-sm text-slate-600 hover:bg-indigo-50 flex items-center border-b border-slate-50 transition-colors">
                                         <i data-lucide="${r.type === 'video' ? 'play' : 'file-text'}" class="h-4 w-4 mr-3 opacity-50"></i> <span class="truncate">${r.title}</span>
                                     </button>
-                                `).join('')}
+                                `).join('') : ''}
                             </div>
-                        </div>
-                    `).join('');
+                        </div>`).join('');
                     lucide.createIcons();
-                } catch(e) { nav.innerHTML = '<p class="text-red-500 p-4">Error.</p>'; }
-            }
+                } catch(e) {}
+            };
 
             window.verRecurso = function(tipo, url, titulo) {
                 const visor = document.getElementById('aula-visor');
                 if (tipo === 'video') {
-                    // Intento básico de convertir URL de YT a embed (Simplificado)
                     let embedUrl = url;
                     if(url.includes('youtube.com/watch?v=')) embedUrl = url.replace('watch?v=', 'embed/');
                     else if(url.includes('youtu.be/')) embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
-                    
-                    visor.innerHTML = `
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 w-full text-left">${titulo}</h3>
-                        <div class="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-inner">
-                            <iframe src="${embedUrl}" class="w-full h-full border-0" allowfullscreen></iframe>
-                        </div>
-                    `;
+                    visor.innerHTML = `<h3 class="text-lg font-bold text-slate-800 mb-4 w-full text-left">${titulo}</h3><div class="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-inner"><iframe src="${embedUrl}" class="w-full h-full border-0" allowfullscreen></iframe></div>`;
                 } else {
-                    visor.innerHTML = `
-                        <i data-lucide="file-text" class="h-16 w-16 text-indigo-200 mb-4"></i>
-                        <h3 class="text-xl font-bold text-slate-800">${titulo}</h3>
-                        <p class="text-slate-500 mt-2 mb-6">Este documento se abre en una nueva pestaña.</p>
-                        <a href="${url}" target="_blank" class="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 flex items-center">
-                            Leer Documento <i data-lucide="external-link" class="h-4 w-4 ml-2"></i>
-                        </a>
-                    `;
+                    visor.innerHTML = `<i data-lucide="file-text" class="h-16 w-16 text-indigo-200 mb-4"></i><h3 class="text-xl font-bold text-slate-800">${titulo}</h3><p class="text-slate-500 mt-2 mb-6">Abre este documento en una nueva pestaña.</p><a href="${url}" target="_blank" class="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">Leer Documento</a>`;
                 }
                 lucide.createIcons();
-            }
+            };
 
             // ==========================================
-            // LOGOUT / LOGIN CORE
+            // LOGIN Y REGISTRO (FORMULARIO)
             // ==========================================
+            let isLoginMode = true;
             document.getElementById('toggle-auth-mode').addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Accede a tu cuenta' : 'Regístrate para aprender';
-                DOM.btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                document.getElementById('btn-submit').textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate como alumno' : '¿Ya tienes cuenta? Inicia sesión';
                 
-                const regF = document.getElementById('register-fields');
+                const registerFields = document.getElementById('register-fields');
                 if (isLoginMode) {
-                    regF.classList.add('hidden');
+                    registerFields.classList.add('hidden');
                     document.getElementById('first_name').removeAttribute('required');
                     document.getElementById('last_name').removeAttribute('required');
                 } else {
-                    regF.classList.remove('hidden');
+                    registerFields.classList.remove('hidden');
                     document.getElementById('first_name').setAttribute('required', 'true');
                     document.getElementById('last_name').setAttribute('required', 'true');
                 }
                 document.getElementById('auth-error').classList.add('hidden');
             });
 
-            DOM.authForm.addEventListener('submit', async (e) => {
+            document.getElementById('auth-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                DOM.btnSubmit.disabled = true; DOM.btnSubmit.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2"></i> Procesando...';
-                
                 const email = document.getElementById('email').value.trim();
-                const pwd = document.getElementById('password').value;
+                const password = document.getElementById('password').value;
+                const firstName = document.getElementById('first_name').value.trim();
+                const lastName = document.getElementById('last_name').value.trim();
+                const btnSubmit = document.getElementById('btn-submit');
                 
+                document.getElementById('auth-error').classList.add('hidden');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = 'Procesando...';
+
                 try {
-                    if (isLoginMode) {
-                        const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pwd });
-                        if(error) throw error;
-                    } else {
-                        const fName = document.getElementById('first_name').value.trim();
-                        const lName = document.getElementById('last_name').value.trim();
-                        const { data, error } = await supabaseClient.auth.signUp({ email, password: pwd, options: { data: { first_name: fName, last_name: lName } }});
-                        if (error) throw error;
-                        if (data?.user && data?.user?.identities?.length === 0) throw new Error("Correo ya registrado.");
-                        
-                        document.getElementById('auth-success').textContent = "Cuenta creada. Iniciando...";
-                        document.getElementById('auth-success').classList.remove('hidden');
+                    let result;
+                    if (isLoginMode) result = await window.db.auth.signInWithPassword({ email, password });
+                    else {
+                        result = await window.db.auth.signUp({ email, password, options: { data: { first_name: firstName, last_name: lastName } } });
+                        if (result.data?.user && result.data?.user?.identities?.length === 0) throw new Error("Correo registrado.");
                     }
-                } catch(err) {
-                    document.getElementById('auth-error').textContent = err.message === 'Invalid login credentials' ? 'Datos incorrectos.' : err.message;
+                    if (result.error) throw result.error;
+                } catch (error) {
+                    document.getElementById('auth-error').textContent = error.message === 'Invalid login credentials' ? 'Datos incorrectos.' : error.message;
                     document.getElementById('auth-error').classList.remove('hidden');
                 } finally {
-                    DOM.btnSubmit.disabled = false; DOM.btnSubmit.textContent = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
                 }
             });
 
-            document.getElementById('btn-logout').addEventListener('click', () => supabaseClient.auth.signOut());
-            document.getElementById('btn-logout-mobile').addEventListener('click', () => supabaseClient.auth.signOut());
+            document.getElementById('btn-logout').addEventListener('click', async () => { setLoader(true); await window.db.auth.signOut(); });
+            document.getElementById('btn-logout-mobile').addEventListener('click', async () => { setLoader(true); await window.db.auth.signOut(); });
+
         });
     </script>
 </body>
