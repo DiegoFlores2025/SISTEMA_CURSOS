@@ -466,7 +466,16 @@
             const supabaseClient = supabase.createClient('https://ophwmlnehunaqalgsrvb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHdtbG5laHVuYXFhbGdzcnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzQ4OTksImV4cCI6MjA5NTc1MDg5OX0.Q1C4YJEYBaaStG1kRYDKYiMqmwl5qjYRsUXL-VsrSR4');
             window.db = supabaseClient; 
 
-            const DOM = { loader: document.getElementById('global-loader'), viewAuth: document.getElementById('view-auth'), viewDashboard: document.getElementById('view-dashboard') };
+            // SE AGREGAN REFERENCIAS COMPLETAS AL FORMULARIO PARA EVITAR EL ERROR
+            const DOM = { 
+                loader: document.getElementById('global-loader'), 
+                viewAuth: document.getElementById('view-auth'), 
+                viewDashboard: document.getElementById('view-dashboard'),
+                authForm: document.getElementById('auth-form'),
+                authError: document.getElementById('auth-error'),
+                authSuccess: document.getElementById('auth-success'),
+                btnSubmit: document.getElementById('btn-submit')
+            };
             const setLoader = (show, text = "Cargando...") => { if (show) { document.getElementById('loader-text').textContent = text; DOM.loader.classList.remove('hidden'); } else DOM.loader.classList.add('hidden'); };
 
             // ==========================================
